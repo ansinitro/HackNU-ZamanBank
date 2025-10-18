@@ -1,9 +1,10 @@
-from sqlalchemy import Boolean, Column, Integer, String, Float, ForeignKey, Enum, DateTime
+from sqlalchemy import Boolean, Column, Integer, String, Float, ForeignKey, Enum, DateTime, JSON
 from database import Base
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from sqlalchemy.sql import func
 import enum
+
 
 class User(Base):
     __tablename__ = "users"
@@ -16,6 +17,7 @@ class User(Base):
     financial_aims = relationship("FinancialAim", back_populates="user")
     transactions = relationship("Transaction", back_populates="user")
     bank_account = relationship("BankAccount", back_populates="user")
+
 
 class FinancialAim(Base):
     __tablename__ = "financial_aims"
@@ -31,6 +33,7 @@ class FinancialAim(Base):
 
     user = relationship("User", back_populates="financial_aims")
     transactions = relationship("FinancialTransaction", back_populates="aim")
+
 
 class BankAccount(Base):
     __tablename__ = "bankaccounts"
@@ -54,11 +57,12 @@ class TransactionType(enum.Enum):
     WITHDRAWAL = "withdrawal"
     TRANSFER = "transfer"
 
+
 # class TransactionType(Enum):
 #     # Basic operations
 #     DEPOSIT = "deposit"
 #     WITHDRAWAL = "withdrawal"
-    
+
 #     # Expense categories
 #     GROCERY = "grocery"
 #     SHOPPING = "shopping"
@@ -66,18 +70,18 @@ class TransactionType(enum.Enum):
 #     UTILITIES = "utilities"
 #     ENTERTAINMENT = "entertainment"
 #     ONLINE_PURCHASE = "online_purchase"
-    
+
 #     # Transfer related
 #     TRANSFER_SENT = "transfer_sent"
 #     TRANSFER_RECEIVED = "transfer_received"
-    
+
 #     # Aim related
 #     AIM_DEPOSIT = "aim_deposit"
 #     AIM_WITHDRAWAL = "aim_withdrawal"
-    
+
 #     # Other
 #     OTHER = "other"
-    
+
 class Transaction(Base):
     __tablename__ = "transactions"
 
@@ -90,11 +94,13 @@ class Transaction(Base):
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     user = relationship("User", back_populates="transactions")
-    
+
+
 # AIM Money
 class FinancialTransactionType(enum.Enum):
     DEPOSIT = "deposit"
     WITHDRAWAL = "withdrawal"
+
 
 class FinancialTransaction(Base):
     __tablename__ = "financial_transactions"
@@ -107,10 +113,28 @@ class FinancialTransaction(Base):
 
     aim_id = Column(Integer, ForeignKey("financial_aims.id", ondelete="CASCADE"))
     bank_account_id = Column(Integer, ForeignKey("bankaccounts.id", ondelete="CASCADE"))
-    
+
     # Fix the relationships
     aim = relationship("FinancialAim", back_populates="transactions")
     bank_account = relationship("BankAccount", back_populates="financial_transactions")
 
 
-    
+class ChatSession(Base):
+    __tablename__ = "chat_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    session_id = Column(String(64), unique=True, index=True, nullable=False)
+
+    # Этап общения с ассистентом (discovery, clarification, recommendation, action, complete)
+    stage = Column(String(32), default="discovery")
+
+    # Данные о цели
+    goal_type = Column(String(255), nullable=True)
+    goal_cost = Column(Float, nullable=True)
+    monthly_saving = Column(Float, nullable=True)
+    timeline = Column(String(255), nullable=True)
+
+    # Список предложенных продуктов (в JSON)
+    products = Column(JSON, nullable=True)
+

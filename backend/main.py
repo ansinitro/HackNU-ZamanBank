@@ -6,10 +6,14 @@ from sqlalchemy import select
 from routes import auth_routes, user_routes, financial_aim_routes, transaction, financial_transaction, chat_routes
 from typing import List, Optional
 import requests
-from database import Base, engine
+from database import Base, engine, get_db
+from models import FinancialAim
 import os
 from datetime import datetime
 from fastapi import UploadFile, File
+from sqlalchemy.ext.asyncio import AsyncSession
+from routes.user_routes import get_current_user
+from chat import get_or_create_chat_session
 
 app = FastAPI(title="Zaman Bank AI Assistant", version="1.0.0")
 app.include_router(auth_routes.router)
@@ -113,54 +117,172 @@ async def startup():
 async def root():
     return {"message": "Zaman Bank AI Assistant API"}
 
-@app.post("/api/chat")
-async def chat_with_assistant(chat_message: ChatMessage):
-    try:
-        # Prepare system prompt with bank context
-        system_prompt = """
-        Ты - AI-ассистент банка Zaman. Ты помогаешь клиентам с:
-        1. Постановкой и достижением финансовых целей (квартира, обучение, покупки, путешествия)
-        2. Оптимизацией финансовых привычек
-        3. Подбором банковских продуктов
-        4. Борьбой со стрессом без лишних трат
-        
-        Будь дружелюбным, empathetic и профессиональным. Используй исламские финансовые принципы когда уместно.
-        """
-        
-        headers = {
-            "x-litellm-api-key": f"{X_LITELLM_API_KEY}",
-            "accept": "application/json",
-            "Content-Type": "application/json"
-        }
-        
-        data = {
-            "model": "gpt-4o-mini",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": chat_message.message}
-            ],
-            "temperature": 0.7
-        }
-        
-        response = requests.post(
-            f"{BASE_URL}/engines/gpt-4o-mini/chat/completions",
-            headers=headers,
-            json=data
-        )
-        
-        if response.status_code == 200:
-            result = response.json()
-            return {
-                "response": result["choices"][0]["message"]["content"],
-                "session_id": chat_message.session_id or generate_session_id()
-            }
-        else:
-            print(response.json())
-            raise HTTPException(status_code=500, detail="AI service error")
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/chat")
+async def chat_with_assistant(
+    chat_message: ChatMessage,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """
+    Multi-stage financial assistant:
+    1️⃣ Goal Discovery
+    2️⃣ Clarification
+    3️⃣ Recommendation
+    4️⃣ Confirmation (NEW!)
+    5️⃣ Call to Action
+    """
+    session_id = chat_message.session_id or generate_session_id()
+    user_session = await get_or_create_chat_session(db, current_user.id, session_id)
+
+    stage = user_session.stage or "discovery"
+
+    # Промпты по стадиям
+    prompts = {
+        "discovery": """
+        You are a friendly financial planner.
+        Ask open-ended questions to understand what financial goals the user has
+        (e.g., buy a car, save for Hajj, start a business).
+        Keep the tone personal and conversational.
+        Return JSON only:
+        {
+          "response": "your message to the user",
+          "intent": "next_stage_when_ready_or_none",
+          "goal_type": "string or null"
+        }
+        """,
+        "clarification": """
+        You are an assistant helping calculate goal feasibility.
+        Ask for approximate cost, current savings, and preferred timeline.
+        Then summarize their target.
+        Return JSON only:
+        {
+          "response": "your message",
+          "intent": "next_stage_when_ready_or_none",
+          "goal_cost": "float or null",
+          "monthly_saving": "float or null",
+          "timeline": "string or null"
+        }
+        """,
+        "recommendation": """
+        You are an expert financial advisor from Zaman Bank.
+        Based on user info, recommend relevant bank products
+        (deposits, financing, halal programs, cards)
+        and explain why each helps reach the goal.
+        Be realistic and Shariah-compliant.
+        Return JSON only:
+        {
+          "response": "your recommendations text",
+          "intent": "next_stage_when_ready_or_none",
+          "products": ["list", "of", "products"]
+        }
+        """,
+        "confirmation": """
+        You are a helpful assistant confirming the user's choice.
+        The user has expressed interest in specific products.
+        Ask them to confirm if they want to create a financial goal with the selected product(s).
+        Be clear and concise.
+        Return JSON only:
+        {
+          "response": "your confirmation request message",
+          "intent": "confirmed_or_declined_or_none",
+          "selected_products": ["list", "of", "selected", "products"]
+        }
+        If user confirms (says yes, давай, хорошо, согласен, etc.), set intent to "confirmed".
+        If user declines, set intent to "declined".
+        """,
+        "action": """
+        Now invite the user to explore these offers via clickable links
+        (formatted JSON for frontend rendering). Keep it concise and motivating.
+        Return JSON only:
+        {
+          "response": "your final message",
+          "cta": [{"label": "string", "url": "string"}]
+        }
+        """
+    }
+
+    system_prompt = prompts[stage]
+
+    headers = {
+        "x-litellm-api-key": f"{X_LITELLM_API_KEY}",
+        "accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "model": "gpt-4o-mini",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": chat_message.message}
+        ],
+        "temperature": 0.4,
+        "response_format": {"type": "json_object"}
+    }
+
+    response = requests.post(
+        f"{BASE_URL}/chat/completions",
+        headers=headers,
+        json=data,
+        timeout=30
+    )
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"AI service error: {response.text}")
+
+    result = response.json()
+    content = result["choices"][0]["message"]["content"]
+
+    import json
+    try:
+        ai_result = json.loads(content)
+    except json.JSONDecodeError:
+        return {"response": content, "session_id": session_id}
+
+    ai_response = ai_result.get("response", "")
+    intent = ai_result.get("intent")
+
+    # ⏩ Переход по стадиям
+    if stage == "discovery" and intent == "next_stage_when_ready_or_none":
+        user_session.stage = "clarification"
+    elif stage == "clarification" and intent == "next_stage_when_ready_or_none":
+        user_session.stage = "recommendation"
+    elif stage == "recommendation" and intent == "next_stage_when_ready_or_none":
+        user_session.stage = "confirmation"
+    elif stage == "confirmation":
+        if intent == "confirmed":
+            user_session.stage = "action"
+        elif intent == "declined":
+            # Вернуться к рекомендациям или завершить
+            user_session.stage = "recommendation"
+            ai_response += "\n\nДавайте рассмотрим другие варианты."
+    elif stage == "action":
+        user_session.stage = "complete"
+
+    # 💾 Сохранение контекста (цель, сумма, и т.д.)
+    for key in ["goal_type", "goal_cost", "monthly_saving", "timeline", "products", "selected_products"]:
+        if key in ai_result and ai_result[key] is not None:
+            setattr(user_session, key, ai_result[key])
+
+    await db.commit()
+
+    # ✅ Создаём цель только после подтверждения на стадии action
+    if user_session.stage == "complete":
+        new_aim = FinancialAim(
+            user_id=current_user.id,
+            title=user_session.goal_type or "Моя финансовая цель",
+            target_amount=float(user_session.goal_cost or 0),
+            current_amount=0.0,
+        )
+        db.add(new_aim)
+        await db.commit()
+        ai_response += f"\n\n✅ Цель '{new_aim.title}' создана. Сумма: {new_aim.target_amount:,.0f} ₸"
+
+    return {
+        "response": ai_response,
+        "stage": user_session.stage,
+        "session_id": session_id
+    }
 
 @app.post("/api/speech-to-text")
 async def speech_to_text(audio_file: UploadFile = File(...)):
