@@ -1,6 +1,8 @@
 "use client";
 
 import { Mic } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface MessageItemProps {
   sender: "user" | "bot";
@@ -19,7 +21,7 @@ export default function MessageItem({ sender, content, duration }: MessageItemPr
   return (
     <div className={`flex ${sender === "user" ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[70%] px-4 py-2 rounded-lg text-sm flex items-center gap-2 ${
+        className={`max-w-[70%] px-4 py-2 rounded-lg text-sm ${
           sender === "user"
             ? "bg-persianGreen text-black"
             : "bg-white text-gray-800 shadow"
@@ -33,7 +35,9 @@ export default function MessageItem({ sender, content, duration }: MessageItemPr
             )}
           </div>
         ) : (
-          content
+          <div className="prose prose-sm max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+          </div>
         )}
       </div>
     </div>
