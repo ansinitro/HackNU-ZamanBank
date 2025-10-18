@@ -13,7 +13,6 @@ export default function AimForm({initial = {}, onCancel, onSave, savingLabel = '
     const [title, setTitle] = useState(initial.title ?? '');
     const [description, setDescription] = useState(initial.description ?? '');
     const [targetAmount, setTargetAmount] = useState((initial.target_amount ?? 0).toString());
-    const [currentAmount, setCurrentAmount] = useState((initial.current_amount ?? 0).toString());
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     
@@ -26,7 +25,6 @@ export default function AimForm({initial = {}, onCancel, onSave, savingLabel = '
             setTitle(initial.title ?? '');
             setDescription(initial.description ?? '');
             setTargetAmount((initial.target_amount ?? 0).toString());
-            setCurrentAmount((initial.current_amount ?? 0).toString());
             initializedRef.current = true;
         }
     }, [initial.id, initial.title, initial.description, initial.target_amount, initial.current_amount]);
@@ -38,7 +36,6 @@ export default function AimForm({initial = {}, onCancel, onSave, savingLabel = '
             title,
             description,
             target_amount: Number(targetAmount || 0),
-            current_amount: Number(currentAmount || 0),
         };
 
         try {
@@ -84,17 +81,6 @@ export default function AimForm({initial = {}, onCancel, onSave, savingLabel = '
                         onChange={(e) => setTargetAmount(e.target.value)}
                         className="mt-1 block w-full rounded-md border-gray-200 shadow-sm p-2"
                         required
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium">Current Amount</label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        value={currentAmount}
-                        onChange={(e) => setCurrentAmount(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-200 shadow-sm p-2"
                     />
                 </div>
             </div>
