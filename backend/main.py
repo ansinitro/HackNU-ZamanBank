@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
-from routes import auth_routes, user_routes, financial_aim_routes
+from routes import auth_routes, user_routes, financial_aim_routes, transaction
 from typing import List, Optional
 import requests
 from database import Base, engine
@@ -13,6 +13,7 @@ app = FastAPI(title="Zaman Bank AI Assistant", version="1.0.0")
 app.include_router(auth_routes.router)
 app.include_router(user_routes.router)
 app.include_router(financial_aim_routes.router)
+app.include_router(transaction.router)
 
 # CORS middleware
 app.add_middleware(
@@ -24,7 +25,8 @@ app.add_middleware(
 )
 
 # Configuration
-API_KEY = "sk-roG30usRr0TLCHAADks6lw"
+X_LITELLM_API_KEY = "sk-roG3OusRr0TLCHAADks6lw" 
+API_KEY = "sk-1234" 
 BASE_URL = "https://openai-hub.neuraldeep.tech"
 security = HTTPBearer()
 
@@ -51,37 +53,35 @@ class ProductRecommendationRequest(BaseModel):
     goal_type: str
 
 # Bank products data (simplified)
-BANK_PRODUCTS = {
+{
     "deposits": [
         {
-            "name": "Сберегательный вклад",
-            "rate": "5.5%",
-            "min_amount": 50000,
-            "term": "12 месяцев",
-            "description": "Надежный вклад с ежемесячной выплатой процентов"
-        },
-        {
-            "name": "Накопительный счет",
-            "rate": "3.5%",
+            "name": "Депозиты",
+            "rate": "до 20%",
             "min_amount": 0,
             "term": "Без срока",
-            "description": "Свободное пополнение и снятие"
+            "description": "Надёжный способ накоплений по исламским принципам",
+            "image": "https://zamanbank.kz/storage/app/media/maing2m/deposit_p%402x.png",
+            "link": "https://zamanbank.kz/ru/personal/agentskij-depozit-vakala"
         }
     ],
     "credits": [
         {
-            "name": "Потребительский кредит",
-            "rate": "15.9%",
-            "max_amount": 5000000,
-            "term": "60 месяцев",
-            "description": "На любые цели без залога"
-        },
+            "name": "Финансирование",
+            "rate": "до 3 млн ₸",
+            "min_amount": 0,
+            "term": "Без залога",
+            "description": "Одобрено Шариатским Советом",
+            "image": "https://zamanbank.kz/storage/app/media/maing2m/pic-tw-02.png",
+            "link": "https://zamanbank.kz/ru/personal/onlajn-finansirovanie-bez-zaloga"
+        }
+    ],
+    "transfers": [
         {
-            "name": "Ипотечный кредит",
-            "rate": "11.5%",
-            "max_amount": 50000000,
-            "term": "240 месяцев",
-            "description": "На покупку недвижимости"
+            "name": "Переводы без комиссии",
+            "description": "В любые банки Казахстана без дополнительной комиссии",
+            "image": "https://zamanbank.kz/storage/app/media/maing2m/pic-tw-04.png",
+            "link": "https://zaman.onelink.me/OAIU/4eqyn2hq"
         }
     ],
     "islamic": [
@@ -122,6 +122,8 @@ async def chat_with_assistant(chat_message: ChatMessage):
         """
         
         headers = {
+            "x-litellm-api-key": f"{X_LITELLM_API_KEY}",
+            "accept": "application/json",
             "Authorization": f"Bearer {API_KEY}",
             "Content-Type": "application/json"
         }
@@ -136,7 +138,7 @@ async def chat_with_assistant(chat_message: ChatMessage):
         }
         
         response = requests.post(
-            f"{BASE_URL}/v1/chat/completions",
+            f"{BASE_URL}/engines/gpt-4o-mini/chat/completions",
             headers=headers,
             json=data
         )
@@ -148,6 +150,7 @@ async def chat_with_assistant(chat_message: ChatMessage):
                 "session_id": chat_message.session_id or generate_session_id()
             }
         else:
+            print(response.json())
             raise HTTPException(status_code=500, detail="AI service error")
             
     except Exception as e:

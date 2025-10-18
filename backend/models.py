@@ -1,6 +1,9 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, DateTime
 from database import Base
 from sqlalchemy.orm import relationship
+from datetime import datetime
+from sqlalchemy.sql import func
+import enum
 
 class User(Base):
     __tablename__ = "users"
@@ -11,7 +14,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
 
     financial_aims = relationship("FinancialAim", back_populates="user")
-
+    transactions = relationship("Transaction", back_populates="user")
 
 class FinancialAim(Base):
     __tablename__ = "financial_aims"
@@ -24,3 +27,22 @@ class FinancialAim(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     user = relationship("User", back_populates="financial_aims")
+
+
+class TransactionType(enum.Enum):
+    DEPOSIT = "deposit"
+    WITHDRAWAL = "withdrawal"
+    TRANSFER = "transfer"
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    amount = Column(Float, nullable=False)
+    description = Column(String, nullable=False)
+    transaction_type = Column(Enum(TransactionType), nullable=False)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    user = relationship("User", back_populates="transactions")

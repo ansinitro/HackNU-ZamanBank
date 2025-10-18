@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: zaman_bank
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  # Add other services as necessary (e.g., web app, etc.)
+  # For example, if you're using FastAPI or Flask:
+  # web:
+  #   build: .
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - "8000:8000"
+  #   networks:
+  #     - app_network
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+    driver: bridge

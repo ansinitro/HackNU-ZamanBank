@@ -15,6 +15,6 @@ pandas
 matplotlib
 seaborn
 asyncpg
-'pydantic[email]'
+# 'pydantic[email]'
 bcrypt
 greenlet
