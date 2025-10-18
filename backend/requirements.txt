@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+pydantic
+python-multipart
+requests
+openai
+python-jose
+passlib
+python-dotenv
+sqlalchemy
+alembic
+psycopg2-binary
+numpy
+pandas
+matplotlib
+seaborn
