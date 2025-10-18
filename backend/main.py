@@ -8,6 +8,7 @@ import requests
 from database import Base, engine
 import os
 from datetime import datetime
+from fastapi import UploadFile, File
 
 app = FastAPI(title="Zaman Bank AI Assistant", version="1.0.0")
 app.include_router(auth_routes.router)
@@ -26,7 +27,7 @@ app.add_middleware(
 
 # Configuration
 X_LITELLM_API_KEY = "sk-roG3OusRr0TLCHAADks6lw" 
-API_KEY = "sk-1234" 
+# API_KEY = "sk-1234"
 BASE_URL = "https://openai-hub.neuraldeep.tech"
 security = HTTPBearer()
 
@@ -124,7 +125,6 @@ async def chat_with_assistant(chat_message: ChatMessage):
         headers = {
             "x-litellm-api-key": f"{X_LITELLM_API_KEY}",
             "accept": "application/json",
-            "Authorization": f"Bearer {API_KEY}",
             "Content-Type": "application/json"
         }
         
@@ -156,33 +156,36 @@ async def chat_with_assistant(chat_message: ChatMessage):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/api/speech-to-text")
-async def speech_to_text(audio_file: bytes):
+async def speech_to_text(audio_file: UploadFile = File(...)):
     try:
+        # Read the file content
+        audio_bytes = await audio_file.read()
+
         headers = {
-            "Authorization": f"Bearer {API_KEY}",
+            "x-litellm-api-key": f"{X_LITELLM_API_KEY}",
         }
-        
+
         files = {
-            "file": ("audio.wav", audio_file, "audio/wav"),
+            "file": (audio_file.filename or "audio.wav", audio_bytes, "audio/wav"),
             "model": (None, "whisper-1")
         }
-        
+
         response = requests.post(
             f"{BASE_URL}/v1/audio/transcriptions",
             headers=headers,
             files=files
         )
-        
+        print(response.json())
         if response.status_code == 200:
             result = response.json()
             return {"text": result["text"]}
         else:
             raise HTTPException(status_code=500, detail="Speech recognition error")
-            
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 @app.post("/api/calculate-goal")
 async def calculate_financial_goal(goal: FinancialGoal):
     try:
