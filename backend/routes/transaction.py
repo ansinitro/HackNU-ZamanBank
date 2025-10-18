@@ -13,6 +13,8 @@ from routes.user_routes import get_current_user
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 import requests
+from datetime import datetime, timedelta
+import random
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
@@ -72,11 +74,26 @@ async def generate_fake_transaction(data: TranscationGenerationRequest, db: Asyn
             # Randomly choose a transaction type
             transaction_type = random.choice([TransactionType.DEPOSIT, TransactionType.WITHDRAWAL, TransactionType.TRANSFER])
 
+            now = datetime.now()
+            one_month_ago = now - timedelta(days=30)
+
+            # Generate random created_at date
+            random_created_at = one_month_ago + timedelta(
+                seconds=random.randint(0, int((now - one_month_ago).total_seconds()))
+            )
+
+            # Generate random updated_at date (must be >= created_at)
+            random_updated_at = random_created_at + timedelta(
+                seconds=random.randint(0, int((now - random_created_at).total_seconds()))
+            )
+
             fake_transaction = Transaction(
                 amount=amount,
                 description=descriptions[i],
                 transaction_type=transaction_type,
-                user_id=user.id
+                user_id=user.id,
+                created_at=random_created_at,
+                updated_at=random_updated_at
             )
 
             db.add(fake_transaction)
@@ -92,11 +109,14 @@ async def generate_fake_transaction(data: TranscationGenerationRequest, db: Asyn
 
 # 🟡 Get All Transactions of the Current User
 @router.get("/", response_model=List[TransactionResponse])
-def get_user_transactions(
-    db: Session = Depends(get_db),
+async def get_user_transactions(
+    db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    transactions = db.query(Transaction).filter(Transaction.user_id == current_user.id).all()
+    result = await db.execute(
+        select(Transaction).filter(Transaction.user_id == current_user.id)
+    )
+    transactions = result.scalars().all()
     return transactions
 
 

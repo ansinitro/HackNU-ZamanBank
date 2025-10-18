@@ -9,13 +9,11 @@ export async function apiFetch<T = any>(path: string, opts: RequestInit = {}) {
 
     if (token) headers['Authorization'] = `Bearer ${token}`;
     try {
-
         const res = await fetch(base + path, {
             credentials: 'include',
             ...opts,
             headers,
         });
-
 
         if (!res.ok) {
             const text = await res.text();
