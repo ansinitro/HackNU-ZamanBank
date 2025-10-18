@@ -9,7 +9,6 @@ class TransactionType(str, Enum):
     WITHDRAWAL = "withdrawal"
     TRANSFER = "transfer"
 
-
 class TransactionBase(BaseModel):
     amount: float
     description: str
@@ -40,12 +39,9 @@ class TranscationGenerationRequest(BaseModel):
     count: int
 
 
-    
-
 class FinancialTransactionUpdate(BaseModel):
     amount: Optional[float]
     transaction_type: Optional[TransactionType]
-
 
 class FinancialTransactionResponse(TransactionBase):
     id: int

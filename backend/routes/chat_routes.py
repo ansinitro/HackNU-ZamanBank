@@ -23,11 +23,11 @@ def _format_transactions_for_prompt(transactions: List[Transaction]) -> str:
             created = t.created_at.isoformat() if getattr(t, "created_at", None) else ""
         except Exception:
             created = ""
-        lines.append(f"- {created} | {t.transaction_type.value if hasattr(t.transaction_type, 'value') else t.transaction_type} | {t.amount:.2f} | {t.description}")
+        lines.append(f"- id - {t.id} {created} | {t.transaction_type.value if hasattr(t.transaction_type, 'value') else t.transaction_type} | {t.amount:.2f} | {t.description}")
 
     header = (
         "Ниже список последних транзакций пользователя (дата | тип | сумма | описание).\n"
-        "Проанализируй их и предложи РОВНО 3 конкретных совета, как улучшить личные финансы.\n"
+        "Проанализируй их и предложи РОВНО 3 конкретных совета, как улучшить личные финансы. В ответе разбирай по сделанным транзакциям, указывай id транзакции \n"
         "Формат ответа: пронумерованный список 1..3, кратко и по делу. Учти исламские финансовые принципы, где уместно.\n" 
         "Не пиши На основе ваших последних транзакций, вот три совета по улучшению личных финансов: просто сами советы отправь"
     )
