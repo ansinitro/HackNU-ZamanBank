@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_db
@@ -10,24 +11,37 @@ router = APIRouter(prefix="/financial-aims", tags=["Financial Aims"])
 
 # 🟢 Create Financial Aim
 @router.post("/", response_model=FinancialAimResponse)
-def create_financial_aim(
-    aim: FinancialAimCreate,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+async def create_financial_aim(
+        aim: FinancialAimCreate,
+        db: AsyncSession = Depends(get_db),
+        current_user=Depends(get_current_user)
 ):
+    print(aim)
+    print(current_user)
+    print(current_user.id)
+
     new_aim = FinancialAim(**aim.dict(), user_id=current_user.id)
     db.add(new_aim)
-    db.commit()
-    db.refresh(new_aim)
+    await db.commit()
+    await db.refresh(new_aim)
+
     return new_aim
 
 # 🟡 Get all aims for current user
 @router.get("/", response_model=List[FinancialAimResponse])
-def get_financial_aims(
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+async def get_financial_aims(
+        db: AsyncSession = Depends(get_db),
+        current_user=Depends(get_current_user)
 ):
-    aims = db.query(FinancialAim).filter(FinancialAim.user_id == current_user.id).all()
+    print(current_user.id)
+
+    # Use SQLAlchemy 2.0 style with select()
+    from sqlalchemy import select
+
+    stmt = select(FinancialAim).filter(FinancialAim.user_id == current_user.id)
+    result = await db.execute(stmt)
+    aims = result.scalars().all()
+
     return aims
 
 # 🟣 Get aim by ID
