@@ -18,6 +18,6 @@ class FinancialAimUpdate(BaseModel):
 class FinancialAimResponse(FinancialAimBase):
     id: int
     user_id: int
-
+    is_completed: bool
     class Config:
         orm_mode = True

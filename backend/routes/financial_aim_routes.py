@@ -51,6 +51,7 @@ def get_financial_aim(aim_id: int, db: Session = Depends(get_db), current_user=D
         FinancialAim.id == aim_id,
         FinancialAim.user_id == current_user.id
     ).first()
+    print(aim)
 
     if not aim:
         raise HTTPException(status_code=404, detail="Financial aim not found")

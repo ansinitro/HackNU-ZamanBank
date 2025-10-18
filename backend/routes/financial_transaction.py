@@ -80,6 +80,9 @@ async def create_financial_transaction(
     else:
         raise HTTPException(status_code=400, detail="Unsupported financial transaction type")
 
+    if aim.current_amount >= aim.target_amount:
+        aim.is_completed = True
+
     # Create DB record
     db_transaction = FinancialTransaction(
         amount=transaction.amount,
@@ -89,6 +92,7 @@ async def create_financial_transaction(
     )
 
     db.add(db_transaction)
+    db.add(aim)
 
     # commit and refresh
     await db.commit()

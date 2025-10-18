@@ -17,6 +17,11 @@ import random
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
+TRANSACTION_CATEGORIES = [
+    "Groceries", "Shopping", "Bills", "Entertainment", 
+    "Transport", "Healthcare", "Education", "Utilities",
+    "Restaurant", "Travel"
+]
 
 @router.post("/generate")
 async def generate_fake_transaction(data: TranscationGenerationRequest, db: AsyncSession = Depends(get_db)):
@@ -72,7 +77,7 @@ async def generate_fake_transaction(data: TranscationGenerationRequest, db: Asyn
         # Randomly choose a transaction type
         transaction_type = random.choice(
             [TransactionType.DEPOSIT, TransactionType.WITHDRAWAL, TransactionType.TRANSFER])
-        category = random.choice(_CATEGORIES)
+        category = random.choice(TRANSACTION_CATEGORIES)
         now = datetime.now()
         six_month_ago = now - timedelta(days=180)
 
