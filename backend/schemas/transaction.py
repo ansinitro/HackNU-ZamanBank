@@ -38,3 +38,20 @@ class TransactionResponse(TransactionBase):
 class TranscationGenerationRequest(BaseModel):
     user_id: int
     count: int
+
+
+    
+
+class FinancialTransactionUpdate(BaseModel):
+    amount: Optional[float]
+    transaction_type: Optional[TransactionType]
+
+
+class FinancialTransactionResponse(TransactionBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    bank_account_id: int
+
+    class Config:
+        orm_mode = True

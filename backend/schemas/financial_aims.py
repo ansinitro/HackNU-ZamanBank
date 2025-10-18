@@ -14,7 +14,6 @@ class FinancialAimUpdate(BaseModel):
     title: Optional[str]
     description: Optional[str]
     target_amount: Optional[float]
-    current_amount: Optional[float]
 
 class FinancialAimResponse(FinancialAimBase):
     id: int

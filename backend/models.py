@@ -28,7 +28,7 @@ class FinancialAim(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     user = relationship("User", back_populates="financial_aims")
-
+    transactions = relationship("FinancialTransaction", back_populates="aim")
 
 class BankAccount(Base):
     __tablename__ = "bankaccounts"
@@ -44,6 +44,8 @@ class BankAccount(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     user = relationship("User", back_populates="bank_account")
+    financial_transactions = relationship("FinancialTransaction", back_populates="bank_account")
+
 
 class TransactionType(enum.Enum):
     DEPOSIT = "deposit"
@@ -62,3 +64,24 @@ class Transaction(Base):
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     user = relationship("User", back_populates="transactions")
+    
+# AIM Money
+class FinancialTransactionType(enum.Enum):
+    DEPOSIT = "deposit"
+    WITHDRAWAL = "withdrawal"
+
+class FinancialTransaction(Base):
+    __tablename__ = "financial_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    amount = Column(Float, nullable=False)
+    transaction_type = Column(Enum(FinancialTransactionType), nullable=False)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    aim_id = Column(Integer, ForeignKey("financial_aims.id", ondelete="CASCADE"))
+    bank_account_id = Column(Integer, ForeignKey("bankaccounts.id", ondelete="CASCADE"))
+    
+    # Fix the relationships
+    aim = relationship("FinancialAim", back_populates="transactions")
+    bank_account = relationship("BankAccount", back_populates="financial_transactions")
