@@ -90,3 +90,74 @@ async def get_finance_advice(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/motivation")
+async def get_finance_motivation(
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Generate a short motivational message based on the user's current aims.
+    Completed aims are always treated as 100%.
+    """
+    from models import FinancialAim
+
+    try:
+        result = await db.execute(
+            select(FinancialAim).filter(FinancialAim.user_id == current_user.id)
+        )
+        aims = result.scalars().all()
+
+        if not aims:
+            prompt = (
+                "Пользователь еще не создал финансовые цели. "
+                "Напиши короткое вдохновляющее сообщение (1-2 предложения) "
+                "о важности ставить финансовые цели и верить в успех."
+            )
+        else:
+            lines = []
+            for a in aims[:10]:  # limit to 10
+                try:
+                    if getattr(a, "is_completed", False):
+                        progress = 100.0
+                    else:
+                        progress = (
+                            (a.current_amount / a.target_amount) * 100
+                            if a.target_amount and a.target_amount > 0
+                            else 0
+                        )
+                except Exception:
+                    progress = 0
+
+                # Ensure numeric rounding and readable formatting
+                progress = min(100.0, round(progress, 1))
+                lines.append(
+                    f"- {a.title}: {progress:.1f}% выполнено из {a.target_amount:.2f}"
+                    + (" ✅ (завершена)" if getattr(a, "is_completed", False) else "")
+                )
+
+            prompt = (
+                "Вот список финансовых целей пользователя и их прогресс:\n" +
+                "\n".join(lines) +
+                "\n\nНа основе этого, напиши 1 вдохновляющее короткое сообщение "
+                "на русском языке (1–2 предложения), чтобы мотивировать "
+                "продолжать движение к целям. "
+                "Если у пользователя есть завершенные цели, обязательно отметь, "
+                "что он молодец и достиг успеха, и подбодри для новых целей. "
+                "Не начинай с фраз вроде 'На основе ваших данных'."
+            )
+
+        ai_result = send_chat_message_to_chatgpt(ChatMessage(message=prompt))
+        ai_text = ai_result.get("response", "")
+        session_id = ai_result.get("session_id")
+
+        return {
+            "motivation": ai_text.strip(),
+            "session_id": session_id,
+            "aims_count": len(aims),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
