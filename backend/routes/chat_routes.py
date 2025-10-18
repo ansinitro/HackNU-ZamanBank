@@ -28,7 +28,8 @@ def _format_transactions_for_prompt(transactions: List[Transaction]) -> str:
     header = (
         "Ниже список последних транзакций пользователя (дата | тип | сумма | описание).\n"
         "Проанализируй их и предложи РОВНО 3 конкретных совета, как улучшить личные финансы.\n"
-        "Формат ответа: пронумерованный список 1..3, кратко и по делу. Учти исламские финансовые принципы, где уместно.\n"
+        "Формат ответа: пронумерованный список 1..3, кратко и по делу. Учти исламские финансовые принципы, где уместно.\n" 
+        "Не пиши На основе ваших последних транзакций, вот три совета по улучшению личных финансов: просто сами советы отправь"
     )
     return header + "\n".join(lines)
 
@@ -37,6 +38,7 @@ def _extract_top3_advice(text: str) -> List[str]:
     if not text:
         return []
     # Naive parse: split by lines and pick first 3 non-empty bullets/numbers
+    print(text)
     advices: List[str] = []
     for line in text.splitlines():
         stripped = line.strip(" -*\t")

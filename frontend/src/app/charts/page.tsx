@@ -1,7 +1,7 @@
 'use client';
 
 import React, {useState, useEffect} from 'react';
-import {ArrowDownCircle, ArrowUpCircle, AlertCircle, Loader2, Wallet, BarChart3, List} from 'lucide-react';
+import {ArrowDownCircle, ArrowUpCircle, AlertCircle, Loader2, Wallet, BarChart3, List, Goal} from 'lucide-react';
 import {
     LineChart,
     Line,
@@ -20,6 +20,7 @@ import {
 import {apiFetch} from "@/lib/api";
 import {useUser} from "@/hooks/useUser";
 import {financialAdvice} from "@/lib/chatApi";
+import {AdvicesCarousel} from "@/components/AdvicesCarousel";
 
 // ============= Types =============
 interface Transaction {
@@ -37,6 +38,7 @@ interface TransactionSummary {
     expense: number;
     balance: number;
 }
+
 
 // ============= Utility Functions =============
 const formatCurrency = (amount: number): string =>
@@ -297,7 +299,7 @@ export default function TransactionsPage() {
             setError(null);
             try {
                 const data = await apiFetch<Transaction[]>('/transactions');
-                const res = await financialAdvice()
+
                 setTransactions(data);
 
                 const income = data.filter((t) => t.transaction_type === 'deposit').reduce((a, b) => a + b.amount, 0);
@@ -367,19 +369,19 @@ export default function TransactionsPage() {
                         onClick={() => setActiveTab('advices')}
                         className={`flex items-center gap-2 px-6 py-3 font-medium transition-colors ${
                             activeTab === 'advices'
-                                    ? 'bg-green-600 text-white'
+                                ? 'bg-green-600 text-white'
                                 : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                     >
-                        <BarChart3 className="w-5 h-5"/>
-                       Советы для
+                        <Goal className="w-5 h-5"/>
+                        Советы для
                     </button>
                 </div>
 
                 <div className="p-5">
                     {activeTab === 'transactions' ? (
                         <TransactionsTable transactions={transactions} loading={loading}/>
-                    ) : (
+                    ) : activeTab === 'charts' ? (
                         loading ? (
                             <div className="flex flex-col items-center justify-center py-12">
                                 <Loader2 className="w-6 h-6 text-gray-500 animate-spin mb-2"/>
@@ -393,7 +395,16 @@ export default function TransactionsPage() {
                         ) : (
                             <ChartsTab transactions={transactions} summary={summary}/>
                         )
-                    )}
+                    ) : activeTab === 'advices' ? (
+                        loading ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                                <Loader2 className="w-6 h-6 text-gray-500 animate-spin mb-2"/>
+                                <p className="text-gray-500">Loading advices...</p>
+                            </div>
+                        ) : (
+                            <AdvicesCarousel/>
+                        )
+                    ) : null}
                 </div>
             </div>
         </div>
