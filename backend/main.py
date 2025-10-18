@@ -55,7 +55,7 @@ class ProductRecommendationRequest(BaseModel):
     goal_type: str
 
 # Bank products data (simplified)
-{
+BANK_PRODUCTS = {
     "deposits": [
         {
             "name": "Депозиты",
