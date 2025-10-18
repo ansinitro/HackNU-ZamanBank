@@ -55,3 +55,4 @@ class FinancialTransactionResponse(TransactionBase):
 
     class Config:
         orm_mode = True
+

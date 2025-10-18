@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, DateTime
+from sqlalchemy import Boolean, Column, Integer, String, Float, ForeignKey, Enum, DateTime
 from database import Base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -25,6 +25,8 @@ class FinancialAim(Base):
     description = Column(String)
     target_amount = Column(Float, nullable=False)
     current_amount = Column(Float, default=0.0)
+    deadline = Column(DateTime(timezone=True), nullable=True)
+    is_completed = Column(Boolean, nullable=False, default=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     user = relationship("User", back_populates="financial_aims")
@@ -52,6 +54,30 @@ class TransactionType(enum.Enum):
     WITHDRAWAL = "withdrawal"
     TRANSFER = "transfer"
 
+# class TransactionType(Enum):
+#     # Basic operations
+#     DEPOSIT = "deposit"
+#     WITHDRAWAL = "withdrawal"
+    
+#     # Expense categories
+#     GROCERY = "grocery"
+#     SHOPPING = "shopping"
+#     BILLS = "bills"
+#     UTILITIES = "utilities"
+#     ENTERTAINMENT = "entertainment"
+#     ONLINE_PURCHASE = "online_purchase"
+    
+#     # Transfer related
+#     TRANSFER_SENT = "transfer_sent"
+#     TRANSFER_RECEIVED = "transfer_received"
+    
+#     # Aim related
+#     AIM_DEPOSIT = "aim_deposit"
+#     AIM_WITHDRAWAL = "aim_withdrawal"
+    
+#     # Other
+#     OTHER = "other"
+    
 class Transaction(Base):
     __tablename__ = "transactions"
 
@@ -85,3 +111,6 @@ class FinancialTransaction(Base):
     # Fix the relationships
     aim = relationship("FinancialAim", back_populates="transactions")
     bank_account = relationship("BankAccount", back_populates="financial_transactions")
+
+
+    

@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
-from routes import auth_routes, user_routes, financial_aim_routes, transaction, financial_transaction, chat_routes
+from routes import auth_routes, user_routes, financial_aim_routes, transaction, financial_transaction, chat_routes, user_similiarity
 from typing import List, Optional
 import requests
 from database import Base, engine
@@ -17,6 +17,7 @@ app.include_router(financial_aim_routes.router)
 app.include_router(transaction.router)
 app.include_router(financial_transaction.router)
 app.include_router(chat_routes.router)
+app.include_router(user_similiarity.router)
 
 # CORS middleware
 app.add_middleware(

@@ -18,3 +18,5 @@ asyncpg
 # 'pydantic[email]'
 bcrypt
 greenlet
+scikit-learn
+numpy
