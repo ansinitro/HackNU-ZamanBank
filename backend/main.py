@@ -2,13 +2,16 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
+from routes import auth_routes, user_routes
 from typing import List, Optional
 import requests
-import json
+from database import Base, engine
 import os
 from datetime import datetime
 
 app = FastAPI(title="Zaman Bank AI Assistant", version="1.0.0")
+app.include_router(auth_routes.router)
+app.include_router(user_routes.router)
 
 # CORS middleware
 app.add_middleware(
@@ -93,6 +96,11 @@ BANK_PRODUCTS = {
         }
     ]
 }
+
+@app.on_event("startup")
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 @app.get("/")
 async def root():
