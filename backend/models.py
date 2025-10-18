@@ -15,6 +15,7 @@ class User(Base):
 
     financial_aims = relationship("FinancialAim", back_populates="user")
     transactions = relationship("Transaction", back_populates="user")
+    bank_account = relationship("BankAccount", back_populates="user")
 
 class FinancialAim(Base):
     __tablename__ = "financial_aims"
@@ -28,6 +29,21 @@ class FinancialAim(Base):
 
     user = relationship("User", back_populates="financial_aims")
 
+
+class BankAccount(Base):
+    __tablename__ = "bankaccounts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    account_number = Column(String(34), unique=True, nullable=False)
+
+    balance = Column(Float, nullable=False, default=0.0)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    user = relationship("User", back_populates="bank_account")
 
 class TransactionType(enum.Enum):
     DEPOSIT = "deposit"

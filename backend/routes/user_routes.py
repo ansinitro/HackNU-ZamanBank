@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from jose import JWTError, jwt
 from database import get_db
 from models import User
@@ -9,9 +10,10 @@ from auth import oauth2_scheme
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
+
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_db)
+        token: str = Depends(oauth2_scheme),
+        db: AsyncSession = Depends(get_db)
 ):
     """
     Extracts current user from JWT token in Authorization header.
@@ -39,9 +41,21 @@ async def get_current_user(
 
 
 @router.get("/me")
-async def read_users_me(current_user: User = Depends(get_current_user)):
+async def read_users_me(
+        current_user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
+):
+    # Refresh the user with eager loading
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.bank_account))
+        .where(User.id == current_user.id)
+    )
+    user = result.scalar_one()
+
     return {
-        "id": current_user.id,
-        "username": current_user.username,
-        "email": current_user.email,
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "bank_account" : user.bank_account[0]
     }
