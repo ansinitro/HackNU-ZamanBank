@@ -30,3 +30,8 @@ export async function sendMessage(msg: string, sessionId: string | undefined): P
         })
     })
 }
+
+export async function financialAdvice() :Promise<Record<string, any>> {
+    return apiFetch<Record<string, any>>('/chat/advice/');
+
+}

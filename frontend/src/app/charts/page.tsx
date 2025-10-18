@@ -2,9 +2,24 @@
 
 import React, {useState, useEffect} from 'react';
 import {ArrowDownCircle, ArrowUpCircle, AlertCircle, Loader2, Wallet, BarChart3, List} from 'lucide-react';
-import {LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer} from 'recharts';
+import {
+    LineChart,
+    Line,
+    BarChart,
+    Bar,
+    PieChart,
+    Pie,
+    Cell,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer
+} from 'recharts';
 import {apiFetch} from "@/lib/api";
 import {useUser} from "@/hooks/useUser";
+import {financialAdvice} from "@/lib/chatApi";
 
 // ============= Types =============
 interface Transaction {
@@ -35,7 +50,7 @@ const SummaryCard: React.FC<{ summary: TransactionSummary }> = ({summary}) => (
     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
             <Wallet className="w-5 h-5 text-green-600"/>
-            <h2 className="text-lg font-semibold">Summary</h2>
+            <h2 className="text-lg font-semibold">Итоги</h2>
         </div>
 
         <div className="space-y-2 text-sm">
@@ -95,7 +110,7 @@ const TransactionsTable: React.FC<{ transactions: Transaction[]; loading: boolea
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
             <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
                 <Wallet className="w-5 h-5 text-green-600"/>
-                All Transactions
+                Все транзакции
             </h2>
 
             <table className="w-full border-collapse text-sm">
@@ -139,8 +154,8 @@ const TransactionsTable: React.FC<{ transactions: Transaction[]; loading: boolea
 const ChartsTab: React.FC<{ transactions: Transaction[]; summary: TransactionSummary }> = ({transactions, summary}) => {
     // Prepare data for pie chart
     const pieData = [
-        {name: 'Income', value: summary.income, color: '#16a34a'},
-        {name: 'Expense', value: summary.expense, color: '#dc2626'},
+        {name: 'Депозит', value: summary.income, color: '#16a34a'},
+        {name: 'Потрачено', value: summary.expense, color: '#dc2626'},
     ];
 
     // Prepare data for daily transactions chart
@@ -162,7 +177,7 @@ const ChartsTab: React.FC<{ transactions: Transaction[]; summary: TransactionSum
             });
         }
         return acc;
-    }, [] as Array<{date: string; income: number; expense: number}>);
+    }, [] as Array<{ date: string; income: number; expense: number }>);
 
     // Prepare data for transaction type breakdown
     const typeData = [
@@ -267,14 +282,14 @@ export default function TransactionsPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'transactions' | 'charts'>('transactions');
+    const [activeTab, setActiveTab] = useState<'transactions' | 'charts' | 'advices'>('transactions');
     const [summary, setSummary] = useState<TransactionSummary>({
         income: 0,
         expense: 0,
         balance: 0,
     });
 
-    const { user } = useUser();
+    const {user} = useUser();
 
     useEffect(() => {
         const fetchTransactions = async () => {
@@ -282,6 +297,7 @@ export default function TransactionsPage() {
             setError(null);
             try {
                 const data = await apiFetch<Transaction[]>('/transactions');
+                const res = await financialAdvice()
                 setTransactions(data);
 
                 const income = data.filter((t) => t.transaction_type === 'deposit').reduce((a, b) => a + b.amount, 0);
@@ -308,7 +324,7 @@ export default function TransactionsPage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold text-green-600 flex items-center gap-2">
                     <Wallet className="w-6 h-6"/>
-                    Expense & Income Tracker
+                    Выписка
                 </h1>
             </div>
 
@@ -334,7 +350,7 @@ export default function TransactionsPage() {
                         }`}
                     >
                         <List className="w-5 h-5"/>
-                        Transactions
+                        Транзакции
                     </button>
                     <button
                         onClick={() => setActiveTab('charts')}
@@ -345,7 +361,18 @@ export default function TransactionsPage() {
                         }`}
                     >
                         <BarChart3 className="w-5 h-5"/>
-                        Charts
+                        Статистика
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('advices')}
+                        className={`flex items-center gap-2 px-6 py-3 font-medium transition-colors ${
+                            activeTab === 'advices'
+                                    ? 'bg-green-600 text-white'
+                                : 'bg-white text-gray-600 hover:bg-gray-50'
+                        }`}
+                    >
+                        <BarChart3 className="w-5 h-5"/>
+                       Советы для
                     </button>
                 </div>
 

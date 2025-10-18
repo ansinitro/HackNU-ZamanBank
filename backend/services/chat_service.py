@@ -6,13 +6,13 @@ import string
 
 # Define your API keys and base URL
 API_KEY = "your-api-key"
-X_LITELLM_API_KEY = "your-litellm-api-key"
-BASE_URL = "https://api.openai.com/v1"
+X_LITELLM_API_KEY = "sk-roG3OusRr0TLCHAADks6lw"
+BASE_URL = "https://openai-hub.neuraldeep.tech"
 
 # Define Pydantic schema for ChatMessage
 class ChatMessage(BaseModel):
     message: str
-    session_id: str | None = None
+    session_id: str = None
 
 
 # Utility function to generate a session ID if not provided
@@ -56,7 +56,7 @@ def send_chat_message_to_chatgpt(chat_message: ChatMessage) -> dict:
             headers=headers,
             json=data
         )
-        
+        print(response.json())
         # Handle the response
         if response.status_code == 200:
             result = response.json()
