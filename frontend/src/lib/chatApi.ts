@@ -15,7 +15,7 @@ export async function convertAudioToText(blob: Blob): Promise<string | undefined
     return res.text
 }
 
-export async function sendMessage(msg: string): Promise<{
+export async function sendMessage(msg: string, sessionId: string | undefined): Promise<{
     response: string,
     session_id: string
 }> {
@@ -25,7 +25,8 @@ export async function sendMessage(msg: string): Promise<{
     }>("/api/chat", {
         method: "POST",
         body: JSON.stringify({
-            message: msg
+            message: msg,
+            session_id: sessionId
         })
     })
 }

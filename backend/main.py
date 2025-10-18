@@ -74,7 +74,7 @@ BANK_PRODUCTS = {
             "min_amount": 0,
             "term": "Без залога",
             "description": "Одобрено Шариатским Советом",
-            "image": "https://zamanbank.kz/storage/app/media/maing2m/pic-tw-02.png",
+            "image": "https://zamanbank.kz/storage/app/media/mai    ng2m/pic-tw-02.png",
             "link": "https://zamanbank.kz/ru/personal/onlajn-finansirovanie-bez-zaloga"
         }
     ],

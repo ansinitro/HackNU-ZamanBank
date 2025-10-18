@@ -13,6 +13,7 @@ interface ChatMessage {
 export default function ChatPage() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
+    const [sessionId, setSessionId] = useState<string | undefined>(undefined);
     const [recording, setRecording] = useState(false);
     const [loading, setLoading] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -30,8 +31,8 @@ export default function ChatPage() {
         setLoading(true);
 
         try {
-            const data = await sendMessage(text);
-
+            const data = await sendMessage(text, sessionId);
+            setSessionId(data.session_id)
             setMessages((m) => [
                 ...m,
                 {id: Date.now(), sender: "bot", content: data.response || "..."},
@@ -109,7 +110,7 @@ export default function ChatPage() {
                         duration={msg.duration}
                     />
                 ))}
-                {loading && <div className="text-gray-400 text-sm">Bot is typing...</div>}
+                {loading && <div className="text-gray-400 text-sm">Думаю...</div>}
             </div>
 
             <div className="flex items-center gap-2 p-4 bg-white border-t">
