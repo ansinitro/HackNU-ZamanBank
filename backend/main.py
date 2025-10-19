@@ -35,7 +35,7 @@ app.add_middleware(
 
 # Configuration
 X_LITELLM_API_KEY = "sk-roG3OusRr0TLCHAADks6lw"
-# API_KEY = "sk-roG3OusRr0TLCHAADks6lw"
+API_KEY = "Bearer sk-roG3OusRr0TLCHAADks6lw"
 BASE_URL = "https://openai-hub.neuraldeep.tech/v1/chat/completions"
 security = HTTPBearer()
 
@@ -209,7 +209,8 @@ async def chat_with_assistant(
         "x-litellm-api-key": f"{X_LITELLM_API_KEY}",
         "accept": "application/json",
         "Content-Type": "application/json",
-        "Authorization" : "Bearer " + X_LITELLM_API_KEY
+        # "Authorization" : f"{API_KEY}"
+        "Authorization" : "Bearer sk-roG3OusRr0TLCHAADks6lw"
     }
 
     data = {
