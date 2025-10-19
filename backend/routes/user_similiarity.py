@@ -86,7 +86,13 @@ class UserSimilarityService:
         transaction_result = await self.db.execute(transaction_query)
         transaction_data = transaction_result.first()
 
-        # Get financial aims metrics
+        avg_progress = func.avg(
+            case(
+                (FinancialAim.target_amount != 0, FinancialAim.current_amount / FinancialAim.target_amount * 100),
+                else_=0
+            )
+        ).label('avg_progress')
+
         aims_query = select(
             func.count(FinancialAim.id).label('num_aims'),
             func.sum(FinancialAim.target_amount).label('total_target'),
@@ -94,9 +100,7 @@ class UserSimilarityService:
             func.sum(
                 case((FinancialAim.is_completed == True, 1), else_=0)
             ).label('num_completed'),
-            func.avg(
-                FinancialAim.current_amount / FinancialAim.target_amount * 100
-            ).label('avg_progress')
+            avg_progress
         ).where(FinancialAim.user_id == user_id)
 
         aims_result = await self.db.execute(aims_query)

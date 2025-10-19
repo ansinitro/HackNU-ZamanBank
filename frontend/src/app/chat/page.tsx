@@ -34,9 +34,9 @@ export default function ChatPage() {
 
     const newMsg: ChatMessage = { id: Date.now(), sender: "user", content: text };
 
-    if (addToChat) {
+    // if (addToChat) {
       setMessages((m) => [...m, newMsg]);
-    }
+    // }
 
     setInput("");
     setLoading(true);
@@ -125,10 +125,10 @@ export default function ChatPage() {
         }}
       >
         <h1 className="text-2xl font-bold" style={{ color: ZamanColors.Solar }}>
-          AI Chat Assistant
+          ИИ Чат ассистент
         </h1>
         <p className="text-sm mt-1" style={{ color: ZamanColors.LightTeal }}>
-          Your intelligent banking companion
+          Ваш умный помощник
         </p>
       </div>
 
@@ -255,7 +255,7 @@ export default function ChatPage() {
             ) : (
               <>
                 <Mic size={18} />
-                <span>Voice</span>
+                {/*<span>Voice</span>*/}
               </>
             )}
           </button>

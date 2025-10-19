@@ -13,11 +13,11 @@ const ZamanColors = {
 };
 
 const links = [
-  { href: "/profile", label: "Profile", icon: User },
-  { href: "/aims", label: "Personal Aims", icon: Target },
-  { href: "/similarity", label: "User Similarity", icon: BarChart3 },
-  { href: "/chat", label: "AI Chat Bot", icon: Bot },
-  { href: "/charts", label: "Expense/Income", icon: BarChart3 },
+  { href: "/profile", label: "Профиль", icon: User },
+  { href: "/aims", label: "Личные цели", icon: Target },
+  { href: "/similarity", label: "Похожие пользователи", icon: BarChart3 },
+  { href: "/chat", label: "ИИ Чат бот", icon: Bot },
+  { href: "/charts", label: "Выписка", icon: BarChart3 },
 ];
 
 export default function Sidebar() {
@@ -111,7 +111,7 @@ export default function Sidebar() {
                 className="text-sm opacity-90 relative z-10 transition-opacity duration-300" 
                 style={{ color: ZamanColors.LightTeal }}
               >
-                Welcome, {username}!
+                Добро пожаловать {username}!
               </p>
             </>
           ) : (
@@ -221,7 +221,7 @@ export default function Sidebar() {
               boxShadow: `0 4px 12px ${ZamanColors.Solar}40`,
               justifyContent: desktopCollapsed ? 'center' : 'flex-start',
             }}
-            title={desktopCollapsed ? "Logout" : undefined}
+            title={desktopCollapsed ? "Выйти" : undefined}
           >
             <div 
               className="p-2 rounded-lg transition-all duration-300 group-hover:rotate-12"
@@ -229,7 +229,7 @@ export default function Sidebar() {
             >
               <LogOut className="w-5 h-5" style={{ color: ZamanColors.PersianGreen }} />
             </div>
-            {!desktopCollapsed && <span>Logout</span>}
+            {!desktopCollapsed && <span>Выйти</span>}
           </button>
         </div>
 
