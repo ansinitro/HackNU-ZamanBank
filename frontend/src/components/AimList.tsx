@@ -4,6 +4,7 @@ import AimForm from './AimForm';
 import AimItem from './AimItem';
 import type { FinancialAim, FinancialAimCreate, FinancialAimUpdate } from '@/types/financialAims';
 import * as api from '../lib/financialAimsApi';
+import {AimHistorySection} from "@/components/AimHistorySection";
 
 // 🎨 ZAMAN COLOR DNA
 const ZamanColors = {
@@ -333,7 +334,6 @@ export default function AimList(): JSX.Element {
               </div>
             )}
           </div>
-
           {/* Completed Section */}
           <div
             className="border-2 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden backdrop-blur-sm transition-all duration-300 hover:shadow-xl"
