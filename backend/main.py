@@ -207,7 +207,8 @@ async def chat_with_assistant(
     headers = {
         "x-litellm-api-key": f"{X_LITELLM_API_KEY}",
         "accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization" : "Bearer " + X_LITELLM_API_KEY
     }
 
     data = {
@@ -221,7 +222,7 @@ async def chat_with_assistant(
     }
 
     response = requests.post(
-        f"{BASE_URL}/chat/completions",
+        f"{BASE_URL}/v1/chat/completions",
         headers=headers,
         json=data,
         timeout=30

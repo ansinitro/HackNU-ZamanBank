@@ -15,10 +15,18 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     // Generate floating dots only on the client after mount to avoid SSR hydration mismatch
-    const [dots, setDots] = useState<Array<{width: string; height: string; left: string; top: string; opacity: number; animationDelay: string; animationDuration: string}>>([]);
+    const [dots, setDots] = useState<Array<{
+        width: string;
+        height: string;
+        left: string;
+        top: string;
+        opacity: number;
+        animationDelay: string;
+        animationDuration: string
+    }>>([]);
 
     useEffect(() => {
-        const generated = Array.from({ length: 20 }).map(() => {
+        const generated = Array.from({length: 20}).map(() => {
             const width = Math.random() * 8 + 4 + 'px';
             const height = Math.random() * 8 + 4 + 'px';
             const left = Math.random() * 100 + '%';
@@ -26,7 +34,7 @@ export default function LoginPage() {
             const opacity = Math.random() * 0.3 + 0.1;
             const animationDelay = Math.random() * 5 + 's';
             const animationDuration = Math.random() * 10 + 10 + 's';
-            return { width, height, left, top, opacity, animationDelay, animationDuration };
+            return {width, height, left, top, opacity, animationDelay, animationDuration};
         });
         setDots(generated);
     }, []);
@@ -43,6 +51,7 @@ export default function LoginPage() {
             })
 
             localStorage.setItem("access_token", data.access_token)
+            localStorage.setItem("userId", `${data.id}`)
 
             window.location.href = '/profile'
         } catch

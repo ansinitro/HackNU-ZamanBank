@@ -52,6 +52,7 @@ export default function RegisterPage() {
             })
 
             localStorage.setItem("access_token", data.access_token)
+            localStorage.setItem("userId", `${data.id}`)
 
             window.location.href = '/profile'
         } catch

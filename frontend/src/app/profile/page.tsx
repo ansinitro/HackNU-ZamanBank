@@ -73,6 +73,7 @@ export default function ProfilePage() {
     try {
       const data = await apiFetch<UserProfile>('/users/me');
       setUser(data);
+      localStorage.setItem("userId" , data.id.toString())
       setEditedData({
         email: data.email,
       });
