@@ -3,11 +3,8 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 import random
 import string
+from app_config import X_LITELLM_API_KEY, X_LITELLM_API_URL
 
-# Define your API keys and base URL
-API_KEY = "Bearer sk-roG3OusRr0TLCHAADks6lw"
-X_LITELLM_API_KEY = "sk-roG3OusRr0TLCHAADks6lw"
-BASE_URL = "https://openai-hub.neuraldeep.tech"
 
 # Define Pydantic schema for ChatMessage
 class ChatMessage(BaseModel):
@@ -38,7 +35,7 @@ def send_chat_message_to_chatgpt(chat_message: ChatMessage) -> dict:
         headers = {
             "x-litellm-api-key": f"{X_LITELLM_API_KEY}",
             "accept": "application/json",
-            "Authorization": f"Bearer {API_KEY}",
+            "Authorization": f"Bearer {X_LITELLM_API_KEY}",
             "Content-Type": "application/json"
         }
         
@@ -53,7 +50,7 @@ def send_chat_message_to_chatgpt(chat_message: ChatMessage) -> dict:
         
         # Send request to the ChatGPT API
         response = requests.post(
-            f"{BASE_URL}/engines/gpt-4o-mini/chat/completions",
+            f"{X_LITELLM_API_URL}/engines/gpt-4o-mini/chat/completions",
             headers=headers,
             json=data
         )

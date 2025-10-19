@@ -8,6 +8,7 @@ from database import get_db
 from models import Transaction, TransactionType
 from schemas.transaction import TransactionCreate, TransactionResponse, TranscationGenerationRequest
 from models import User
+from app_config import X_LITELLM_API_KEY, X_LITELLM_API_URL
 from routes.user_routes import get_current_user
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,15 +34,10 @@ async def generate_fake_transaction(data: TranscationGenerationRequest, db: Asyn
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Configuration
-    X_LITELLM_API_KEY = "sk-roG3OusRr0TLCHAADks6lw"
-    API_KEY = "Bearer sk-roG3OusRr0TLCHAADks6lw"
-    BASE_URL = "https://openai-hub.neuraldeep.tech/v1/chat/completions"
-
     headers = {
         "x-litellm-api-key": f"{X_LITELLM_API_KEY}",
         "accept": "application/json",
-        "Authorization": f"Bearer {API_KEY}",
+        "Authorization": f"Bearer {X_LITELLM_API_KEY}",
         "Content-Type": "application/json"
     }
 

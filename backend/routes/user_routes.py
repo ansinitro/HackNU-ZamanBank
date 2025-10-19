@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from jose import JWTError, jwt
 from database import get_db
 from models import User
-from config import SECRET_KEY, ALGORITHM
+from app_config import SECRET_KEY, ALGORITHM
 from auth import oauth2_scheme
 from models import TransactionType  # Update import path based on your structure
 

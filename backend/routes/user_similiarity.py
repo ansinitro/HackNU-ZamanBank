@@ -4,7 +4,7 @@ from typing import List, Dict, Tuple
 
 import numpy as np
 from auth import oauth2_scheme
-from config import SECRET_KEY, ALGORITHM
+from app_config import SECRET_KEY, ALGORITHM
 from database import get_db
 from models import User, BankAccount, FinancialTransaction, FinancialAim, FinancialTransactionType
 from sklearn.metrics.pairwise import cosine_similarity

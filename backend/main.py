@@ -10,6 +10,7 @@ from database import Base, engine, get_db
 from models import FinancialAim
 import os
 from datetime import datetime
+from app_config import X_LITELLM_API_KEY, X_LITELLM_API_URL
 from fastapi import UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from routes.user_routes import get_current_user
@@ -33,10 +34,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configuration
-X_LITELLM_API_KEY = "sk-roG3OusRr0TLCHAADks6lw"
-API_KEY = "Bearer sk-roG3OusRr0TLCHAADks6lw"
-BASE_URL = "https://openai-hub.neuraldeep.tech"
 security = HTTPBearer()
 
 
@@ -224,7 +221,7 @@ async def chat_with_assistant(
     }
 
     response = requests.post(
-        f"{BASE_URL}/v1/chat/completions",
+        f"{X_LITELLM_API_URL}/v1/chat/completions",
         headers=headers,
         json=data,
         timeout=30
@@ -303,7 +300,7 @@ async def speech_to_text(audio_file: UploadFile = File(...)):
         }
 
         response = requests.post(
-            f"{BASE_URL}/v1/audio/transcriptions",
+            f"{X_LITELLM_API_URL}/v1/audio/transcriptions",
             headers=headers,
             files=files
         )

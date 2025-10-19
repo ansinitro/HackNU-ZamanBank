@@ -3,3 +3,4 @@ frontend/.next
 frontend/node_modules
 **/__pycache__/
 .idea/
+**/.env

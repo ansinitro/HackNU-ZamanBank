@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from jose import jwt
 import bcrypt
-from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from app_config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from fastapi.security import OAuth2PasswordBearer
 
 # The URL where clients obtain the token (matches your /auth/login endpoint)
