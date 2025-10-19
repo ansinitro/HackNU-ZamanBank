@@ -1,6 +1,17 @@
 "use client";
 import Link from "next/link";
-import { User, Target, Bot, BarChart3, Menu, X, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+    User,
+    Target,
+    Bot,
+    BarChart3,
+    Menu,
+    X,
+    LogOut,
+    ChevronLeft,
+    ChevronRight,
+    ChartBarIncreasing
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -15,6 +26,7 @@ const ZamanColors = {
 const links = [
   { href: "/profile", label: "Профиль", icon: User },
   { href: "/aims", label: "Личные цели", icon: Target },
+  { href: "/aimcharts", label: "Ваш прогресс", icon: ChartBarIncreasing  },
   { href: "/similarity", label: "Похожие пользователи", icon: BarChart3 },
   { href: "/chat", label: "ИИ Чат бот", icon: Bot },
   { href: "/charts", label: "Выписка", icon: BarChart3 },
