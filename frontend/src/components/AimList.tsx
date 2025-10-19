@@ -2,24 +2,19 @@
 import React, { JSX, useEffect, useState } from 'react';
 import AimForm from './AimForm';
 import AimItem from './AimItem';
-import type {
-  FinancialAim,
-  FinancialAimCreate,
-  FinancialAimUpdate,
-} from '@/types/financialAims';
+import type { FinancialAim, FinancialAimCreate, FinancialAimUpdate } from '@/types/financialAims';
 import * as api from '../lib/financialAimsApi';
 
-export default function AimList(): JSX.Element {
-  // 🎨 Define Zaman brand colors locally
-  const zamanColors = {
-    persianGreen: '#2D9A86',
-    solar: '#EEFE6D',
-    cloud: '#FFFFFF',
-    black: '#111111',
-    gray: '#B0B0B0',
-  };
+// 🎨 ZAMAN COLOR DNA
+const ZamanColors = {
+  PersianGreen: '#2D9A86',
+  Solar: '#EEFE6D',
+  Cloud: '#FFFFFF',
+  LightTeal: '#B8E6DC',
+  DarkTeal: '#1A5F52',
+};
 
-  // 🧠 React states
+export default function AimList(): JSX.Element {
   const [aims, setAims] = useState<FinancialAim[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,18 +22,23 @@ export default function AimList(): JSX.Element {
   const [creating, setCreating] = useState(false);
   const [motivation, setMotivation] = useState<string | null>(null);
 
-  // 🔽 collapsible sections
   const [showInProgress, setShowInProgress] = useState(true);
   const [showCompleted, setShowCompleted] = useState(false);
 
-  // 🟢 Load aims
+  // Load aims
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
-    api
-      .fetchAims()
-      .then((data) => mounted && setAims(data))
-      .catch((err) => {
+    
+    const loadAims = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const data = await api.fetchAims();
+        if (mounted) {
+          setAims(data);
+        }
+      } catch (err: any) {
         if (mounted) {
           const errorMsg =
             typeof err?.body === 'string'
@@ -46,78 +46,95 @@ export default function AimList(): JSX.Element {
               : err?.body?.detail ||
                 err?.message ||
                 JSON.stringify(err?.body) ||
-                'Failed to load aims';
+                'Failed to load aims. Please check your connection.';
           setError(errorMsg);
         }
-      })
-      .finally(() => mounted && setLoading(false));
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadAims();
 
     return () => {
       mounted = false;
     };
   }, []);
 
-  // 💬 Fetch motivation only once
+  // Load motivation
   useEffect(() => {
-    const token =
-      typeof window !== 'undefined'
-        ? localStorage.getItem('access_token')
-        : null;
+    if (typeof window === 'undefined') return;
+    
+    const token = localStorage.getItem('access_token');
     if (!token) return;
 
-    fetch('http://localhost:8000/chat/motivation', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.motivation) setMotivation(data.motivation);
-      })
-      .catch((err) => console.error('Motivation fetch error:', err));
+    const loadMotivation = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/chat/motivation', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.motivation) {
+            setMotivation(data.motivation);
+          }
+        }
+      } catch (err) {
+        console.error('Motivation fetch error:', err);
+        // Don't show error to user - motivation is optional
+      }
+    };
+
+    loadMotivation();
   }, []);
 
-  // 🟣 Create
   async function handleCreate(payload: FinancialAimCreate) {
     try {
       const created = await api.createAim(payload);
-      setAims((s) => [created, ...s]);
+      setAims((prev) => [created, ...prev]);
       setCreating(false);
     } catch (err: any) {
       console.error('Create error:', err);
+      alert('Failed to create aim. Please try again.');
     }
   }
 
-  // 🟠 Update
   async function handleUpdate(payload: FinancialAimUpdate) {
     if (!editing) return;
+    
     try {
       const updated = await api.updateAim(editing.id, payload);
-      setAims((s) => s.map((a) => (a.id === updated.id ? updated : a)));
+      setAims((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
       setEditing(null);
     } catch (err: any) {
       console.error('Update error:', err);
+      alert('Failed to update aim. Please try again.');
     }
   }
 
-  // 🔴 Delete
   async function handleDelete(id: number) {
-    if (!confirm('Delete this aim?')) return;
     try {
       await api.deleteAim(id);
-      setAims((s) => s.filter((a) => a.id !== id));
+      setAims((prev) => prev.filter((a) => a.id !== id));
     } catch (err: any) {
       console.error('Delete error:', err);
+      throw err; // Re-throw so AimItem can handle it
     }
   }
 
-  // 🟢 Withdraw or Close Goal — updates instantly
-  async function handleAction(
-    id: number,
-    type: 'withdraw' | 'close',
-    amount?: number
-  ) {
+  async function handleAction(id: number, type: 'withdrawal' | 'deposit', amount?: number) {
+    if (typeof window === 'undefined') return;
+    
     try {
       const token = localStorage.getItem('access_token');
-      const res = await fetch(`http://localhost:8000/financial-transaction/`, {
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      const res = await fetch('http://localhost:8000/financial-transaction/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,164 +147,282 @@ export default function AimList(): JSX.Element {
         }),
       });
 
-      if (!res.ok) throw new Error('Transaction failed');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Transaction failed');
+      }
 
-      // 🧠 Fetch updated aim immediately
-      const updated = await fetch(`http://localhost:8000/financial-aim/${id}`, {
+      // Fetch updated aim
+      const updatedRes = await fetch(`http://localhost:8000/financial-aims/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
-      }).then((r) => r.json());
+      });
 
-      setAims((s) => s.map((a) => (a.id === id ? updated : a)));
-    } catch (err) {
+      if (updatedRes.ok) {
+        const updated = await updatedRes.json();
+        setAims((prev) => prev.map((a) => (a.id === id ? updated : a)));
+      }
+    } catch (err: any) {
       console.error('Transaction error:', err);
+      throw err; // Re-throw so AimItem can handle it
     }
   }
 
-  // ✳️ Split aims
   const inProgressAims = aims.filter((a) => !a.is_completed);
   const completedAims = aims.filter((a) => a.is_completed);
 
-  // 💅 CSS vars for local color use
-  const colorVars = {
-    '--persianGreen': zamanColors.persianGreen,
-    '--solar': zamanColors.solar,
-    '--cloud': zamanColors.cloud,
-    '--black': zamanColors.black,
-    '--gray': zamanColors.gray,
-  } as React.CSSProperties;
-
   return (
-    <div className="space-y-6" style={colorVars}>
-      {/* 🌟 Motivation */}
+    <div className="space-y-4 sm:space-y-6 px-3 sm:px-0">
+      {/* Motivation Banner */}
       {motivation && (
         <div
-          className="p-4 rounded-lg border shadow-sm text-sm font-medium"
+          className="p-4 sm:p-5 rounded-xl sm:rounded-2xl border-2 shadow-lg text-sm sm:text-base font-medium backdrop-blur-sm transition-all duration-300 hover:shadow-xl"
           style={{
-            background: `linear-gradient(to right, var(--persianGreen), var(--solar), var(--cloud))`,
-            borderColor: 'var(--persianGreen)',
-            color: 'var(--black)',
+            background: `linear-gradient(135deg, ${ZamanColors.Solar}40, ${ZamanColors.LightTeal}30)`,
+            borderColor: ZamanColors.PersianGreen,
+            color: ZamanColors.DarkTeal,
           }}
         >
-          💡 {motivation}
+          <div className="flex items-start gap-2 sm:gap-3">
+            <span className="text-xl sm:text-2xl flex-shrink-0">💡</span>
+            <p className="flex-1 leading-relaxed text-sm sm:text-base">{motivation}</p>
+          </div>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold" style={{ color: 'var(--black)' }}>
+      <div className="flex items-center justify-between flex-wrap gap-3 sm:gap-4">
+        <h2 
+          className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent"
+          style={{
+            backgroundImage: `linear-gradient(135deg, ${ZamanColors.PersianGreen}, ${ZamanColors.DarkTeal})`,
+          }}
+        >
           Personal Aims
         </h2>
         <button
-          onClick={() => setCreating((s) => !s)}
-          className="px-4 py-2 rounded-lg text-white shadow transition"
+          onClick={() => setCreating((prev) => !prev)}
+          className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 whitespace-nowrap"
           style={{
-            backgroundColor: 'var(--persianGreen)',
+            backgroundColor: creating ? ZamanColors.Cloud : ZamanColors.Solar,
+            color: ZamanColors.PersianGreen,
+            border: `2px solid ${ZamanColors.PersianGreen}`,
           }}
         >
-          {creating ? 'Close' : 'Create Aim'}
+          {creating ? '✕ Cancel' : '+ Create Aim'}
         </button>
       </div>
 
       {/* Forms */}
       {creating && (
-        <AimForm
-          onCancel={() => setCreating(false)}
-          onSave={handleCreate}
-          savingLabel="Create"
-        />
+        <div style={{ animation: 'fade-in 0.3s ease-out' }}>
+          <AimForm
+            onCancel={() => setCreating(false)}
+            onSave={handleCreate}
+            savingLabel="Create"
+          />
+        </div>
       )}
+
       {editing && (
-        <AimForm
-          initial={editing}
-          onCancel={() => setEditing(null)}
-          onSave={handleUpdate}
-          savingLabel="Update"
-        />
+        <div style={{ animation: 'fade-in 0.3s ease-out' }}>
+          <AimForm
+            initial={editing}
+            onCancel={() => setEditing(null)}
+            onSave={handleUpdate}
+            savingLabel="Update"
+          />
+        </div>
       )}
 
-      {/* Loading / Error */}
-      {loading && <div className="text-gray-600">Loading...</div>}
-      {error && <div className="text-red-600">{error}</div>}
-
-      {/* 🎯 In Progress */}
-      <div
-        className="border rounded-lg shadow-sm overflow-hidden"
-        style={{ borderColor: 'var(--gray)' }}
-      >
-        <button
-          onClick={() => setShowInProgress((s) => !s)}
-          className="w-full flex justify-between items-center px-4 py-2 transition"
-          style={{
-            backgroundColor: 'rgba(238, 254, 109, 0.4)',
-            color: 'var(--black)',
-          }}
+      {/* Loading */}
+      {loading && !error && (
+        <div 
+          className="flex items-center justify-center p-6 sm:p-8 rounded-xl sm:rounded-2xl"
+          style={{ backgroundColor: `${ZamanColors.LightTeal}30` }}
         >
-          <span className="font-semibold">
-            🎯 In Progress ({inProgressAims.length})
+          <div 
+            className="rounded-full h-6 w-6 sm:h-8 sm:w-8 border-4 border-t-transparent" 
+            style={{ 
+              borderColor: ZamanColors.PersianGreen,
+              animation: 'spin 1s linear infinite',
+            }}
+          />
+          <span className="ml-2 sm:ml-3 text-sm sm:text-base font-medium" style={{ color: ZamanColors.PersianGreen }}>
+            Loading aims...
           </span>
-          <span>{showInProgress ? '▲' : '▼'}</span>
-        </button>
+        </div>
+      )}
+      
+      {/* Error */}
+      {error && (
+        <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 border-red-400 bg-red-50 text-red-700 font-medium">
+          <div className="flex items-start gap-2">
+            <span className="text-lg sm:text-xl flex-shrink-0">⚠️</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold mb-1 text-sm sm:text-base">Error Loading Aims</p>
+              <p className="text-xs sm:text-sm break-words">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded-lg text-xs sm:text-sm hover:bg-red-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-        {showInProgress && (
-          <div className="p-4 grid gap-3">
-            {inProgressAims.length === 0 ? (
-              <div className="text-sm" style={{ color: 'var(--gray)' }}>
-                No active aims yet.
+      {/* Show sections only if not loading and no error */}
+      {!loading && !error && (
+        <>
+          {/* In Progress Section */}
+          <div
+            className="border-2 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden backdrop-blur-sm transition-all duration-300 hover:shadow-xl"
+            style={{ 
+              borderColor: ZamanColors.PersianGreen,
+              backgroundColor: 'transparent',
+            }}
+          >
+            <button
+              onClick={() => setShowInProgress((prev) => !prev)}
+              className="w-full flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 font-bold text-base sm:text-lg transition-all duration-300 hover:brightness-95"
+              style={{
+                background: `linear-gradient(135deg, ${ZamanColors.PersianGreen}, ${ZamanColors.DarkTeal})`,
+                color: ZamanColors.Cloud,
+              }}
+            >
+              <span className="flex items-center gap-2 sm:gap-3">
+                <span className="text-xl sm:text-2xl">🎯</span>
+                <span className="truncate">
+                  In Progress 
+                  <span className="hidden xs:inline"> ({inProgressAims.length})</span>
+                  <span className="xs:hidden text-sm ml-1">({inProgressAims.length})</span>
+                </span>
+              </span>
+              <span 
+                className="text-xl sm:text-2xl transition-transform duration-300 flex-shrink-0" 
+                style={{ transform: showInProgress ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              >
+                ▼
+              </span>
+            </button>
+            {showInProgress && (
+              <div className="p-3 sm:p-6 grid gap-3 sm:gap-4" style={{ backgroundColor: `${ZamanColors.Cloud}95` }}>
+                {inProgressAims.length === 0 ? (
+                  <div 
+                    className="text-center py-6 sm:py-8 rounded-lg sm:rounded-xl px-4"
+                    style={{ 
+                      backgroundColor: `${ZamanColors.Solar}20`,
+                      color: ZamanColors.PersianGreen,
+                    }}
+                  >
+                    <p className="text-base sm:text-lg font-medium">No active aims yet.</p>
+                    <p className="text-xs sm:text-sm mt-2 opacity-75">Create your first financial goal to get started!</p>
+                  </div>
+                ) : (
+                  inProgressAims.map((a) => (
+                    <AimItem
+                      key={a.id}
+                      aim={a}
+                      onEdit={(aim) => setEditing(aim)}
+                      onDelete={handleDelete}
+                      onAction={handleAction}
+                    />
+                  ))
+                )}
               </div>
-            ) : (
-              inProgressAims.map((a) => (
-                <AimItem
-                  key={a.id}
-                  aim={a}
-                  onEdit={(aim) => setEditing(aim)}
-                  onDelete={handleDelete}
-                  onAction={handleAction}
-                />
-              ))
             )}
           </div>
-        )}
-      </div>
 
-      {/* ✅ Completed */}
-      <div
-        className="border rounded-lg shadow-sm overflow-hidden"
-        style={{ borderColor: 'var(--gray)' }}
-      >
-        <button
-          onClick={() => setShowCompleted((s) => !s)}
-          className="w-full flex justify-between items-center px-4 py-2 transition"
-          style={{
-            backgroundColor: 'rgba(45, 154, 134, 0.25)',
-            color: 'var(--black)',
-          }}
-        >
-          <span className="font-semibold">
-            ✅ Completed ({completedAims.length})
-          </span>
-          <span>{showCompleted ? '▲' : '▼'}</span>
-        </button>
-
-        {showCompleted && (
-          <div className="p-4 grid gap-3">
-            {completedAims.length === 0 ? (
-              <div className="text-sm" style={{ color: 'var(--gray)' }}>
-                No completed aims yet.
+          {/* Completed Section */}
+          <div
+            className="border-2 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden backdrop-blur-sm transition-all duration-300 hover:shadow-xl"
+            style={{ 
+              borderColor: ZamanColors.Solar,
+              backgroundColor: 'transparent',
+            }}
+          >
+            <button
+              onClick={() => setShowCompleted((prev) => !prev)}
+              className="w-full flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 font-bold text-base sm:text-lg transition-all duration-300 hover:brightness-95"
+              style={{
+                background: `linear-gradient(135deg, ${ZamanColors.Solar}, #FFF59D)`,
+                color: ZamanColors.PersianGreen,
+              }}
+            >
+              <span className="flex items-center gap-2 sm:gap-3">
+                <span className="text-xl sm:text-2xl">✅</span>
+                <span className="truncate">
+                  Completed
+                  <span className="hidden xs:inline"> ({completedAims.length})</span>
+                  <span className="xs:hidden text-sm ml-1">({completedAims.length})</span>
+                </span>
+              </span>
+              <span 
+                className="text-xl sm:text-2xl transition-transform duration-300 flex-shrink-0" 
+                style={{ transform: showCompleted ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              >
+                ▼
+              </span>
+            </button>
+            {showCompleted && (
+              <div className="p-3 sm:p-6 grid gap-3 sm:gap-4" style={{ backgroundColor: `${ZamanColors.Cloud}95` }}>
+                {completedAims.length === 0 ? (
+                  <div 
+                    className="text-center py-6 sm:py-8 rounded-lg sm:rounded-xl px-4"
+                    style={{ 
+                      backgroundColor: `${ZamanColors.LightTeal}20`,
+                      color: ZamanColors.PersianGreen,
+                    }}
+                  >
+                    <p className="text-base sm:text-lg font-medium">No completed aims yet.</p>
+                    <p className="text-xs sm:text-sm mt-2 opacity-75">Keep working towards your goals!</p>
+                  </div>
+                ) : (
+                  completedAims.map((a) => (
+                    <AimItem
+                      key={a.id}
+                      aim={a}
+                      onEdit={(aim) => setEditing(aim)}
+                      onDelete={handleDelete}
+                      onAction={handleAction}
+                    />
+                  ))
+                )}
               </div>
-            ) : (
-              completedAims.map((a) => (
-                <AimItem
-                  key={a.id}
-                  aim={a}
-                  onEdit={(aim) => setEditing(aim)}
-                  onDelete={handleDelete}
-                  onAction={handleAction}
-                />
-              ))
             )}
           </div>
-        )}
-      </div>
+        </>
+      )}
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        /* Extra small breakpoint for very small phones */
+        @media (min-width: 360px) {
+          .xs\:inline {
+            display: inline;
+          }
+          .xs\:hidden {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }

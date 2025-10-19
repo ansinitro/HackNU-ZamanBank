@@ -46,15 +46,23 @@ async def get_financial_aims(
 
 # 🟣 Get aim by ID
 @router.get("/{aim_id}", response_model=FinancialAimResponse)
-def get_financial_aim(aim_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    aim = db.query(FinancialAim).filter(
+async def get_financial_aim(
+    aim_id: int, 
+    db: AsyncSession = Depends(get_db), 
+    current_user=Depends(get_current_user)
+):
+    from sqlalchemy import select
+    
+    stmt = select(FinancialAim).where(
         FinancialAim.id == aim_id,
         FinancialAim.user_id == current_user.id
-    ).first()
-    print(aim)
+    )
+    result = await db.execute(stmt)
+    aim = result.scalar_one_or_none()
 
     if not aim:
         raise HTTPException(status_code=404, detail="Financial aim not found")
+    
     return aim
 
 # 🟠 Update aim
