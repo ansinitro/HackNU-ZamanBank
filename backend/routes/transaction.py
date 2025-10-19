@@ -173,15 +173,17 @@ async def get_user_tx_categories(
 
 # 🟣 Get Transaction by ID for the Current User
 @router.get("/{transaction_id}", response_model=TransactionResponse)
-def get_transaction_by_id(
-        transaction_id: int,
-        db: Session = Depends(get_db),
-        current_user=Depends(get_current_user)
+async def get_transaction_by_id(
+    transaction_id: int,
+    db: AsyncSession = Depends(get_db),  # Async session
+    current_user=Depends(get_current_user)
 ):
-    transaction = db.query(Transaction).filter(
+    query = select(Transaction).where(
         Transaction.id == transaction_id,
         Transaction.user_id == current_user.id
-    ).first()
+    )
+    result = await db.execute(query)
+    transaction = result.scalars().first()  # .scalars() to get ORM objects
 
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
