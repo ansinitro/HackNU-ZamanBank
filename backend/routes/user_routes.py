@@ -28,13 +28,13 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        sub: str = payload.get("sub")
+        if sub is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
-    result = await db.execute(select(User).where(User.username == username))
+    result = await db.execute(select(User).where(User.iin == sub))
     user = result.scalar_one_or_none()
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -57,7 +57,7 @@ async def read_users_me(
 
     return {
         "id": user.id,
-        "username": user.username,
+        "iin": user.iin,
         "email": user.email,
         "bank_account" : user.bank_account[0]
     }

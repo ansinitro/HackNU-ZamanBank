@@ -12,14 +12,14 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/signup", response_model=dict)
 async def signup(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     # Check if username already exists
-    result = await db.execute(select(User).where(User.username == user_data.username))
+    result = await db.execute(select(User).where(User.iin == user_data.iin))
     existing_user = result.scalar_one_or_none()
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already taken")
 
     # Create user
     new_user = User(
-        username=user_data.username,
+        iin=user_data.iin,
         email=user_data.email,
         hashed_password=hash_password(user_data.password),
     )
@@ -39,16 +39,16 @@ async def signup(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.refresh(new_user)
 
     # Generate access token
-    token = create_access_token({"sub": new_user.username})
+    token = create_access_token({"sub": new_user.iin})
     return {"access_token": token, "token_type": "bearer"}
 
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == user_data.email))
+    result = await db.execute(select(User).where(User.iin == user_data.iin))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    token = create_access_token({"sub": user.username})
+    token = create_access_token({"sub": user.iin})
     return {"access_token": token, "token_type": "bearer"}

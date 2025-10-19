@@ -29,7 +29,7 @@ const ZamanColors = {
 
 interface UserProfile {
   id: number;
-  username: string;
+  iin: string;
   email: string;
   bank_account: {
     id: number;
@@ -54,7 +54,6 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const [editedData, setEditedData] = useState({
-    username: '',
     email: '',
   });
 
@@ -75,7 +74,6 @@ export default function ProfilePage() {
       const data = await apiFetch<UserProfile>('/users/me');
       setUser(data);
       setEditedData({
-        username: data.username,
         email: data.email,
       });
 
@@ -109,7 +107,6 @@ export default function ProfilePage() {
       if (user) {
         setUser({
           ...user,
-          username: editedData.username,
           email: editedData.email,
         });
       }
@@ -129,7 +126,6 @@ export default function ProfilePage() {
   const handleCancel = () => {
     if (user) {
       setEditedData({
-        username: user.username,
         email: user.email,
       });
     }
@@ -221,7 +217,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold mb-1" style={{ color: ZamanColors.Solar }}>
-                {user.username}
+                {user.iin}
               </h1>
               <p className="text-sm" style={{ color: ZamanColors.LightTeal }}>
                 Личный кабинет
@@ -377,28 +373,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-4">
-            {/* Username */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: ZamanColors.DarkTeal }}>
-                <User className="w-4 h-4" style={{ color: ZamanColors.PersianGreen }} />
-                Имя пользователя
-              </label>
-              <input
-                type="text"
-                value={editedData.username}
-                onChange={(e) => setEditedData({ ...editedData, username: e.target.value })}
-                disabled={!editMode}
-                className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none"
-                style={{
-                  backgroundColor: editMode ? ZamanColors.Cloud : `${ZamanColors.LightTeal}20`,
-                  border: `2px solid ${editMode ? ZamanColors.PersianGreen : ZamanColors.LightTeal}`,
-                  color: ZamanColors.DarkTeal,
-                  cursor: editMode ? 'text' : 'not-allowed',
-                }}
-              />
-            </div>
 
-            {/* Email */}
             <div>
               <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: ZamanColors.DarkTeal }}>
                 <Mail className="w-4 h-4" style={{ color: ZamanColors.PersianGreen }} />

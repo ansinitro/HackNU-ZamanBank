@@ -10,7 +10,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(50), unique=True, nullable=False)
+    iin = Column(String(12), unique=True, nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
 
@@ -56,31 +56,6 @@ class TransactionType(enum.Enum):
     DEPOSIT = "deposit"
     WITHDRAWAL = "withdrawal"
     TRANSFER = "transfer"
-
-
-# class TransactionType(Enum):
-#     # Basic operations
-#     DEPOSIT = "deposit"
-#     WITHDRAWAL = "withdrawal"
-
-#     # Expense categories
-#     GROCERY = "grocery"
-#     SHOPPING = "shopping"
-#     BILLS = "bills"
-#     UTILITIES = "utilities"
-#     ENTERTAINMENT = "entertainment"
-#     ONLINE_PURCHASE = "online_purchase"
-
-#     # Transfer related
-#     TRANSFER_SENT = "transfer_sent"
-#     TRANSFER_RECEIVED = "transfer_received"
-
-#     # Aim related
-#     AIM_DEPOSIT = "aim_deposit"
-#     AIM_WITHDRAWAL = "aim_withdrawal"
-
-#     # Other
-#     OTHER = "other"
 
 class Transaction(Base):
     __tablename__ = "transactions"

@@ -18,10 +18,11 @@ import random
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 TRANSACTION_CATEGORIES = [
-    "Groceries", "Shopping", "Bills", "Entertainment", 
+    "Groceries", "Shopping", "Bills", "Entertainment",
     "Transport", "Healthcare", "Education", "Utilities",
     "Restaurant", "Travel"
 ]
+
 
 @router.post("/generate")
 async def generate_fake_transaction(data: TranscationGenerationRequest, db: AsyncSession = Depends(get_db)):
@@ -44,30 +45,29 @@ async def generate_fake_transaction(data: TranscationGenerationRequest, db: Asyn
         "Content-Type": "application/json"
     }
 
-    reqData = {
-        "model": "gpt-4o-mini",
-        "messages": [
-            {"role": "system", "content": ""},
-            {"role": "user",
-             "content": f"Generate me {data.count} fake bank transactions descriptions divided by space, without anything only the descriptiions devided by whitespaces not like numbered list, without anything."}
-        ],
-        "temperature": 0.7
-    }
+    # reqData = {
+    #     "model": "gpt-4o-mini",
+    #     "messages": [
+    #         {"role": "system", "content": ""},
+    #         {"role": "user",
+    #          "content": f"Generate me {data.count} fake bank transactions descriptions divided by space, without anything only the descriptiions devided by whitespaces not like numbered list, without anything."}
+    #     ],
+    #     "temperature": 0.7
+    # }
+    #
+    # response = requests.post(
+    #     f"{BASE_URL}/engines/gpt-4o-mini/chat/completions",
+    #     headers=headers,
+    #     json=reqData
+    # )
+    #
+    # if response.status_code == 200:
+    #     result = response.json()
+    #     response = result["choices"][0]["message"]["content"]
 
-    response = requests.post(
-        f"{BASE_URL}/engines/gpt-4o-mini/chat/completions",
-        headers=headers,
-        json=reqData
-    )
-
-    if response.status_code == 200:
-        result = response.json()
-        response = result["choices"][0]["message"]["content"]
-
-    descriptions = response.split(" ")
-    if len(descriptions) < data.count:
-        description = descriptions + descriptions
-
+    # descriptions = response.split(" ")
+    # if len(descriptions) < data.count:
+    # description = descriptions + descriptions
     # Create fake transactions
     fake_transaction = None
     for i in range(data.count):
@@ -93,7 +93,16 @@ async def generate_fake_transaction(data: TranscationGenerationRequest, db: Asyn
 
         fake_transaction = Transaction(
             amount=amount,
-            description=descriptions[i],
+            description=random.choice(["Purchase",
+                                       "Payment",
+                                       "Fee",
+                                       "Service",
+                                       "Store",
+                                       "Supplies",
+                                       "Subscription",
+                                       "Online",
+                                       "Bill",
+                                       "Charge"]),
             transaction_type=transaction_type,
             user_id=user.id,
             created_at=random_created_at,
@@ -119,7 +128,8 @@ async def get_user_transactions(
         current_user=Depends(get_current_user),
         date_from: Optional[date] = Query(None, description="Start date (YYYY-MM-DD)"),
         date_to: Optional[date] = Query(None, description="End date (YYYY-MM-DD)"),
-        description: Optional[int] = Query(None, description="Filter by category description")
+        description: Optional[str] = Query(None, description="Filter by category description"),
+        txType: Optional[str] = Query(None, description="Filter by transaction type"),
 ):
     query = select(Transaction).filter(Transaction.user_id == current_user.id)
 
@@ -132,6 +142,12 @@ async def get_user_transactions(
         query = query.filter(Transaction.created_at <= end_of_day)
     if description:
         query = query.filter(Transaction.description == description)
+
+    if txType:
+        if txType == 'deposit':
+            query = query.filter(Transaction.transaction_type == TransactionType.DEPOSIT)
+        if txType == 'withdrawal':
+            query = query.filter(Transaction.transaction_type == TransactionType.WITHDRAWAL)
 
     result = await db.execute(query)
     transactions = result.scalars().all()
