@@ -285,7 +285,7 @@ export default function AimItem({aim, onEdit, onDelete, onAction}: Props) {
                         className="w-full sm:flex-1 px-4 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 text-white shadow-md hover:shadow-lg transition-all disabled:opacity-60 font-semibold text-sm hover:from-rose-600 hover:to-red-700 flex items-center justify-center gap-2"
                     >
                         <DollarSign size={16} className="sm:w-[18px] sm:h-[18px]"/>
-                        Withdraw
+                        Снять деньги
                     </motion.button>
 
                     <motion.button
@@ -302,7 +302,7 @@ export default function AimItem({aim, onEdit, onDelete, onAction}: Props) {
                         }}
                     >
                         <TrendingUp size={16} className="sm:w-[18px] sm:h-[18px]"/>
-                        <span className="hidden sm:inline">Closer to Goal</span>
+                        <span className="hidden sm:inline">Стать ближе к цели</span>
                         <span className="sm:hidden">Add Funds</span>
                     </motion.button>
                 </div>
@@ -341,13 +341,13 @@ export default function AimItem({aim, onEdit, onDelete, onAction}: Props) {
                                 <>
                                     <TrendingUp size={20} className="sm:w-6 sm:h-6"
                                                 style={{color: ZamanColors.PersianGreen}}/>
-                                    Add Amount
+                                    Добавить
                                 </>
                             ) : (
                                 <>
                                     <DollarSign size={20} className="sm:w-6 sm:h-6"
                                                 style={{color: ZamanColors.PersianGreen}}/>
-                                    Withdraw Amount
+                                    Снять
                                 </>
                             )}
                         </h2>
@@ -421,7 +421,7 @@ export default function AimItem({aim, onEdit, onDelete, onAction}: Props) {
                         className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                         style={{animation: 'spin 1s linear infinite'}}
                     />
-                    Processing...
+                    Обработкаc...
                   </span>
                                 ) : (
                                     'Confirm'

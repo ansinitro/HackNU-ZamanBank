@@ -99,7 +99,7 @@ export default function AimList(): JSX.Element {
       setCreating(false);
     } catch (err: any) {
       console.error('Create error:', err);
-      alert('Failed to create aim. Please try again.');
+      alert('Failed to Создать цель. Please try again.');
     }
   }
 
@@ -198,7 +198,7 @@ export default function AimList(): JSX.Element {
             backgroundImage: `linear-gradient(135deg, ${ZamanColors.PersianGreen}, ${ZamanColors.DarkTeal})`,
           }}
         >
-          Personal Aims
+          Ваши цели
         </h2>
         <button
           onClick={() => setCreating((prev) => !prev)}
@@ -209,7 +209,7 @@ export default function AimList(): JSX.Element {
             border: `2px solid ${ZamanColors.PersianGreen}`,
           }}
         >
-          {creating ? '✕ Cancel' : '+ Create Aim'}
+          {creating ? '✕ Cancel' : '+ Создать цель'}
         </button>
       </div>
 
@@ -276,7 +276,7 @@ export default function AimList(): JSX.Element {
       {/* Show sections only if not loading and no error */}
       {!loading && !error && (
         <>
-          {/* In Progress Section */}
+          {/* В процессе Section */}
           <div
             className="border-2 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden backdrop-blur-sm transition-all duration-300 hover:shadow-xl"
             style={{ 
@@ -295,7 +295,7 @@ export default function AimList(): JSX.Element {
               <span className="flex items-center gap-2 sm:gap-3">
                 <span className="text-xl sm:text-2xl">🎯</span>
                 <span className="truncate">
-                  In Progress 
+                  В процессе 
                   <span className="hidden xs:inline"> ({inProgressAims.length})</span>
                   <span className="xs:hidden text-sm ml-1">({inProgressAims.length})</span>
                 </span>
@@ -353,7 +353,7 @@ export default function AimList(): JSX.Element {
               <span className="flex items-center gap-2 sm:gap-3">
                 <span className="text-xl sm:text-2xl">✅</span>
                 <span className="truncate">
-                  Completed
+                  Достигнуто
                   <span className="hidden xs:inline"> ({completedAims.length})</span>
                   <span className="xs:hidden text-sm ml-1">({completedAims.length})</span>
                 </span>

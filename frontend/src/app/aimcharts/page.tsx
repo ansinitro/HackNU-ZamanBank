@@ -70,7 +70,7 @@ const FinancialAimsDashboard = ({aims = sampleAims}) => {
     }, [aims]);
 
     const filteredAims = useMemo(() => {
-        if (filter === 'completed') return aims.filter(a => a.is_completed);
+        if (filter === Достигнуто) return aims.filter(a => a.is_completed);
         if (filter === 'active') return aims.filter(a => !a.is_completed);
         return aims;
     }, [aims, filter]);
@@ -133,7 +133,7 @@ const FinancialAimsDashboard = ({aims = sampleAims}) => {
                 }}>
                     {[
                         {icon: Target, label: 'Total Aims', value: stats.total, color: ZamanColors.PersianGreen},
-                        {icon: CheckCircle, label: 'Completed', value: stats.completed, color: ZamanColors.Solar},
+                        {icon: CheckCircle, label: Достигнуто, value: stats.completed, color: ZamanColors.Solar},
                         {
                             icon: DollarSign,
                             label: 'Total Progress',
@@ -187,7 +187,7 @@ const FinancialAimsDashboard = ({aims = sampleAims}) => {
 
                 {/* Filter Tabs */}
                 <div style={{display: 'flex', gap: '1rem', marginBottom: '2rem'}}>
-                    {['all', 'active', 'completed'].map((f) => (
+                    {['all', 'active', Достигнуто].map((f) => (
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
@@ -412,7 +412,7 @@ const FinancialAimsDashboard = ({aims = sampleAims}) => {
                       {isOverdue
                           ? `Overdue by ${Math.abs(daysLeft)} days`
                           : aim.is_completed
-                              ? 'Completed'
+                              ? Достигнуто
                               : `${daysLeft} days remaining`}
                     </span>
                                     </div>
