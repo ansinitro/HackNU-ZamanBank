@@ -107,18 +107,16 @@ async def create_financial_transaction(
 async def get_aim_transactions(
     aim_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user = Depends(get_current_user)
 ):
-    # Verify aim belongs to user
-    result = await db.execute(
-        select(FinancialAim).where(
-            FinancialAim.id == aim_id,
-            FinancialAim.user_id == current_user.id
-        )
-    )
-    aim = result.scalar_one_or_none()
-    if not aim:
-        raise HTTPException(status_code=404, detail="Financial aim not found")
+    # # Verify aim belongs to user
+    # result = await db.execute(
+    #     select(FinancialAim).where(
+    #         FinancialAim.id == aim_id,
+    #     )
+    # )
+    # aim = result.scalar_one_or_none()
+    # if not aim:
+    #     raise HTTPException(status_code=404, detail="Financial aim not found")
 
     result = await db.execute(
         select(FinancialTransaction).where(FinancialTransaction.aim_id == aim_id).order_by(FinancialTransaction.created_at.desc())

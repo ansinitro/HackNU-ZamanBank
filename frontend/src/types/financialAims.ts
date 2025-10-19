@@ -9,3 +9,11 @@ export interface FinancialAim {
 
 export type FinancialAimCreate = Omit<FinancialAim, 'id' | 'user_id'>;
 export type FinancialAimUpdate = Partial<FinancialAimCreate>;
+
+export type FinancialTx = {
+    amount: number,
+    transaction_type: string,
+    id: number,
+    created_at: string,
+    bank_account_id: number
+}
