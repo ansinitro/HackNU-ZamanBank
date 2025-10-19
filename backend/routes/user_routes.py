@@ -93,7 +93,7 @@ async def generate_test_data(
     for i in range(count):
         # Create user with unique credentials
         user = User(
-            username=f"testuser{i}_{random.randint(1000,9999)}",
+            iin=f"{random.randint(100000000000, 999999999999)}",
             email=f"test{i}_{random.randint(1000,9999)}@example.com",
             hashed_password=hash_password("testpass123")
         )
@@ -153,7 +153,7 @@ async def generate_test_data(
 
         created_users.append({
             "id": user.id,
-            "username": user.username,
+            "iin": user.iin,
             "email": user.email,
             "bank_account_number": bank_account.account_number
         })

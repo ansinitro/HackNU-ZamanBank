@@ -16,6 +16,7 @@ const links = [
   { href: "/", label: "Dashboard", icon: BarChart3 },
   { href: "/profile", label: "Profile", icon: User },
   { href: "/aims", label: "Personal Aims", icon: Target },
+  { href: "/similarity", label: "User Similarity", icon: BarChart3 },
   { href: "/chat", label: "AI Chat Bot", icon: Bot },
   { href: "/charts", label: "Expense/Income", icon: BarChart3 },
 ];

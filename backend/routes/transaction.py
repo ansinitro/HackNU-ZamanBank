@@ -35,7 +35,7 @@ async def generate_fake_transaction(data: TranscationGenerationRequest, db: Asyn
 
     # Configuration
     X_LITELLM_API_KEY = "sk-roG3OusRr0TLCHAADks6lw"
-    API_KEY = "sk-1234"
+    API_KEY = "sk-roG3OusRr0TLCHAADks6lw"
     BASE_URL = "https://openai-hub.neuraldeep.tech"
 
     headers = {
