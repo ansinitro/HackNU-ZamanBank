@@ -234,7 +234,7 @@ export const Similarity: React.FC = () => {
             }}
           >
             <h1 className="text-3xl font-bold mb-2" style={{ color: ZamanColors.Solar }}>
-              Мои похожие пользователи
+              Похожие пользователи
             </h1>
             <p className="text-sm" style={{ color: ZamanColors.LightTeal }}>
               Пользователь #{currentUserId}
@@ -349,7 +349,7 @@ export const Similarity: React.FC = () => {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold mb-2" style={{ color: ZamanColors.Solar }}>
-                Мои похожие пользователи
+                Похожие пользователи
               </h1>
               <p className="text-sm" style={{ color: ZamanColors.LightTeal }}>
                 Вы: Пользователь #{currentUserId} • Найдено {similarUsers.length} похожих пользователей (сходство {'>'} 30%)
