@@ -112,7 +112,7 @@ async def generate_test_data(
         # Create financial aims
         aims = []
         aim_titles = ["Vacation", "New Car", "Emergency Fund", "House", "Education"]
-        for title in random.sample(aim_titles, 2):
+        for title in random.sample(aim_titles, 4):
             aim = FinancialAim(
                 user_id=user.id,
                 title=title,
@@ -126,7 +126,7 @@ async def generate_test_data(
         await db.flush()
 
         # Generate random transactions
-        for _ in range(10):
+        for _ in range(40):
             transaction_type = random.choice(regular_transactions)
             amount = round(random.uniform(10, 1000), 2)
 
