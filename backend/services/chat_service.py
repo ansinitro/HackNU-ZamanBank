@@ -7,7 +7,7 @@ import string
 # Define your API keys and base URL
 API_KEY = "Bearer sk-roG3OusRr0TLCHAADks6lw"
 X_LITELLM_API_KEY = "sk-roG3OusRr0TLCHAADks6lw"
-BASE_URL = "https://openai-hub.neuraldeep.tech/v1/chat/completions"
+BASE_URL = "https://openai-hub.neuraldeep.tech"
 
 # Define Pydantic schema for ChatMessage
 class ChatMessage(BaseModel):

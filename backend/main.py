@@ -36,7 +36,7 @@ app.add_middleware(
 # Configuration
 X_LITELLM_API_KEY = "sk-roG3OusRr0TLCHAADks6lw"
 API_KEY = "Bearer sk-roG3OusRr0TLCHAADks6lw"
-BASE_URL = "https://openai-hub.neuraldeep.tech/v1/chat/completions"
+BASE_URL = "https://openai-hub.neuraldeep.tech"
 security = HTTPBearer()
 
 

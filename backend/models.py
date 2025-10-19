@@ -113,3 +113,49 @@ class ChatSession(Base):
     # Список предложенных продуктов (в JSON)
     products = Column(JSON, nullable=True)
 
+from pydantic import BaseModel
+from datetime import datetime
+from typing import List, Optional
+
+class TransactionBase(BaseModel):
+    id: int
+    amount: float
+    transaction_type: str
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+class FinancialAimWithTx(BaseModel):
+    id: int
+    title: str
+    description: Optional[str]
+    target_amount: float
+    current_amount: float
+    deadline: Optional[datetime]
+    is_completed: bool
+    transactions: List[TransactionBase]
+
+    class Config:
+        orm_mode = True
+
+
+class FinancialTransactionSchema(BaseModel):
+    id: int
+    amount: float
+    transaction_type: FinancialTransactionType
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+class FinancialAimSchema(BaseModel):
+    id: int
+    title: str
+    description: Optional[str] = None
+    target_amount: float
+    current_amount: float
+    deadline: datetime
+    is_completed: bool
+    user_id: int
+    transactions: List[FinancialTransactionSchema] = []
